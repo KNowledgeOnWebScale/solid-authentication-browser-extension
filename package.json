@@ -1,0 +1,18 @@
+{
+  "name": "solid-auth-extension",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx web-ext run --verbose",
+    "build": "npx web-ext build --overwrite-dest"
+  },
+  "devDependencies": {
+    "@inrupt/solid-client-authn-core": "^1.12.2",
+    "node-fetch": "^3.3.0",
+    "web-ext": "^7.4.0"
+  },
+  "type": "module",
+  "author": "Axel Lorreyne",
+  "private": "true",
+  "license": "MIT"
+}
