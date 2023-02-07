@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import fetch from '/node-fetch';
 import {buildAuthenticatedFetch, createDpopHeader, generateDpopKeyPair} from '@inrupt/solid-client-authn-core';
 
 

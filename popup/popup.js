@@ -1,4 +1,7 @@
-import {getToken} from "../js/solid.js";
+import {getToken} from '../js/solid.js';
+
+const executing = browser.tabs.executeScript({file: "../js/content.js"})
+executing.then(await main());
 
 async function main() {
 
@@ -42,8 +45,3 @@ async function main() {
         }
     })
 }
-
-const executing = browser.tabs.executeScript({file: "../js/content.js"})
-
-executing.then(await main());
-
