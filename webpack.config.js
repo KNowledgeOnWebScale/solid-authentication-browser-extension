@@ -6,7 +6,6 @@ const path = require('path')
 module.exports = {
     entry: {
         background: './src/js/background.js',
-        content: './src/js/content.js'
     },
     output: {
         path: path.join(__dirname, '/dist'),

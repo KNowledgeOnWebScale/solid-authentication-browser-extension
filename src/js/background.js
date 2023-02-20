@@ -1,30 +1,50 @@
-import {getAccessToken, makeAuthenticadedRequest} from "./solid.js";
+import {getAccessToken} from "./solid.js";
+import {createDpopHeader} from '@inrupt/solid-client-authn-core';
 
-const id = "extension-token_0c617d74-fa1f-43a5-a703-43cbf4ebe712";
-const secret = "0cddf4822aa158bb6679be5c02d14c6237263ee964b396f456c485ea33ecb48335c9e19b68c0bc260cb3f8778f4749729d0870cbfc735b9c6cd27ddc81bcb3aa"
 
-console.log("Solid auth extension service worker running")
+const id = "extension-token_9fa32a63-1aaf-4aa8-9250-f8efab7e5235";
+const secret = "1cfccf127a545c599564d2e9196e470212ba2d1b701b6881620e66aed693850a06224b7b67942ac0714979f3b04caff8263eedc5e371529a05e6264af21f7219"
+
+// TODO: pull authorization endpoint from ".well-known/openid-configuration" path
+const tokenUrl = "https://pod.playground.solidlab.be/.oidc/token";
+
+
+const isChrome = (navigator.userAgent.toLowerCase().includes("chrome"));
+console.log("Solid auth extension background script running")
+console.log("is chrome? : " + isChrome)
 
 chrome.webNavigation.onCompleted.addListener(async function (details) {
 
-    console.log("current request url: ", details.url)
-
-    const {access_token, dpopkey} = await getAccessToken(id, secret);
-
-    const response = await makeAuthenticadedRequest(details.url, access_token, dpopkey)
-
-    const content = await response.text()
-
-    console.log("token: ", access_token)
-    console.log("dpopkey: ", await dpopkey.publicKey)
-    console.log(content)
 })
 
+async function rewriteRequestHeaders(details) {
+
+    // TODO: find a more elegant way to catch the access token creation request called from getAccessToken()
+    if (details.method === "POST") {
+        return
+    }
+
+    const {accessToken, dpopKey} = await getAccessToken(id, secret, tokenUrl);
+
+    const dpopHeader = await createDpopHeader(details.url, "GET", dpopKey);
+
+    details.requestHeaders.push({
+        name: "authorization",
+        value: "DPoP " + accessToken
+    })
+
+    details.requestHeaders.push({
+        name: "dpop",
+        value: dpopHeader
+    })
+
+    return {requestHeaders: details.requestHeaders}
+}
+
 chrome.webRequest.onBeforeSendHeaders.addListener(
-    // Added headers should look like this
-    //
-    // {
-    // authorization: "DPoP <access token>",
-    // dpop: "<dpop key that is outputted from await createDpopHeader(...) in getAccessToken>"
-    // }
+    rewriteRequestHeaders,
+    {
+        urls: ["<all_urls>"]
+    },
+    ["blocking", "requestHeaders"]
 )

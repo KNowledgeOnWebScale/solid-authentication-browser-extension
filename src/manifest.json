@@ -1,5 +1,5 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "Solid Authentication",
   "version": "1.0",
 
@@ -10,26 +10,23 @@
   },
 
   "permissions": [
-    "tabs",
+    "<all_urls>",
     "activeTab",
     "storage",
-    "webNavigation"
+    "tabs",
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking"
   ],
 
-  "action": {
+  "browser_action": {
     "default_popup": "popup.html",
     "default_title": "Solid Auth"
   },
 
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
-    }
-  ],
-
   "background": {
-    "service_worker": "background.js",
-    "type": "module"
+    "scripts":[
+      "background.js"
+    ]
   }
 }

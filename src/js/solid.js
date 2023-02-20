@@ -1,6 +1,5 @@
-//import fetch from 'node-fetch';
-const fetch = require('node-fetch').default
-import {buildAuthenticatedFetch, createDpopHeader, generateDpopKeyPair} from '@inrupt/solid-client-authn-core';
+import fetch from 'node-fetch';
+import {createDpopHeader, generateDpopKeyPair} from '@inrupt/solid-client-authn-core';
 
 
 /**
@@ -24,12 +23,12 @@ export async function getToken(email, password) {
  * Generate a temporary access token to make authenticated requests
  * @param {String} id - User id linked to the users WebID
  * @param {String} secret - User secret linked to the users WebID
- * @returns {String} - Temporary Access Token
+ * @param {String} tokenUrl - Url from which an access token can be requested from the server
+ * @returns {String, KeyPair} - Temporary Access Token and it's corresponding keypair
  */
-export async function getAccessToken(id, secret) {
+export async function getAccessToken(id, secret, tokenUrl) {
     const dpopKey = await generateDpopKeyPair();
     const authString = `${encodeURIComponent(id)}:${encodeURIComponent(secret)}`;
-    const tokenUrl = 'https://pod.playground.solidlab.be/.oidc/token';
     const receive = await fetch(tokenUrl, {
         method: 'POST',
         headers: {
@@ -40,17 +39,5 @@ export async function getAccessToken(id, secret) {
         body: 'grant_type=client_credentials&scope=webid',
     });
     const {access_token: accessToken} = await receive.json();
-    return {access_token: accessToken, dpopkey: dpopKey};
-}
-
-/**
- * Make an authenticated request on a url using a temporary access token
- * @param {String} url - Url of a resource that needs authentication
- * @param {String} accessToken - User access token
- * @param {KeyPair} dpopKey - dpopKey
- * @returns {Promise<Response>} - Authenticated response on url
- */
-export async function makeAuthenticadedRequest(url, accessToken, dpopKey) {
-    const authFetch = await buildAuthenticatedFetch(fetch, accessToken, {dpopKey});
-    return await authFetch(url);
+    return {accessToken, dpopKey};
 }
