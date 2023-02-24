@@ -1,17 +1,14 @@
-import {getAccessToken} from "./solid.js";
+import {getAccessToken, getToken, getTokenUrl} from "./solid.js";
 import {createDpopHeader} from '@inrupt/solid-client-authn-core';
 
-
-const id = "extension-token_9fa32a63-1aaf-4aa8-9250-f8efab7e5235";
-const secret = "1cfccf127a545c599564d2e9196e470212ba2d1b701b6881620e66aed693850a06224b7b67942ac0714979f3b04caff8263eedc5e371529a05e6264af21f7219"
-
-// TODO: pull authorization endpoint from ".well-known/openid-configuration" path
-const tokenUrl = "https://pod.playground.solidlab.be/.oidc/token";
-
+var id;
+var secret;
+var credentialsUrl;
+var tokenUrl;
 
 const isChrome = (navigator.userAgent.toLowerCase().includes("chrome"));
-console.log("Solid auth extension background script running")
-console.log("is chrome? : " + isChrome)
+
+chrome.runtime.onMessage.addListener(handleMessage);
 
 chrome.webNavigation.onCompleted.addListener(async function (details) {
 
@@ -48,3 +45,45 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
     },
     ["blocking", "requestHeaders"]
 )
+
+async function handleMessage(message, callback) {
+    if (message.message === "generate-id") {
+
+        credentialsUrl = message.domain + "idp/credentials/"
+
+        tokenUrl = await getTokenUrl(message.domain);
+        //tokenUrl = message.domain + ".oidc/token"
+
+        const response = await getToken(message.email, message.password, credentialsUrl);
+        id = response.id
+        secret = response.secret
+
+        let success = (id !== undefined && secret !== undefined);
+        changeIcon(success);
+
+        callback(success);
+    }
+}
+
+function changeIcon(success) {
+    const iconPath = success ? "solid-48-checkmark.png" : "solid-48.png";
+    chrome.browserAction.setIcon({
+        path: {
+            "48": iconPath
+        }
+    });
+}
+
+function loadFromBrowserStorage(item, callback) {
+    chrome.storage.local.get(item, callback);
+}
+
+function storeInBrowserStorage(item, callback) {
+    chrome.storage.local.set(item, callback);
+}
+
+storeInBrowserStorage({solidAuthentication: "test"}, function () {
+    return
+})
+
+

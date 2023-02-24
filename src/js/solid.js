@@ -8,8 +8,8 @@ import {createDpopHeader, generateDpopKeyPair} from '@inrupt/solid-client-authn-
  * @param {String} password - User password for pod on the server
  * @returns {(String, String)} - Tuple containing user id and secret linked to the users WebID
  */
-export async function getToken(email, password) {
-    const response = await fetch('https://pod.playground.solidlab.be/idp/credentials/', {
+export async function getToken(email, password, credentialsUrl) {
+    const response = await fetch(credentialsUrl, {
         method: 'POST',
         headers: {'content-type': 'application/json'},
         body: JSON.stringify({email: email, password: password, name: 'extension-token'}),
@@ -40,4 +40,15 @@ export async function getAccessToken(id, secret, tokenUrl) {
     });
     const {access_token: accessToken} = await receive.json();
     return {accessToken, dpopKey};
+}
+
+export async function getTokenUrl(url) {
+    let requestUrl = url + ".well-known/openid-configuration"
+    const response = await fetch(requestUrl, {
+        method: 'GET',
+        headers: {
+            'content-type': 'application/json'
+        }
+    });
+    return (await (await response.json())).token_endpoint;
 }
