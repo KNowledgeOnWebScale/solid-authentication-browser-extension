@@ -49,9 +49,9 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 async function handleMessage(message, callback) {
     if (message.message === "generate-id") {
 
-        credentialsUrl = message.domain + "idp/credentials/"
+        credentialsUrl = message.idp + "idp/credentials/"
 
-        tokenUrl = await getTokenUrl(message.domain);
+        tokenUrl = await getTokenUrl(message.idp);
         //tokenUrl = message.domain + ".oidc/token"
 
         const response = await getToken(message.email, message.password, credentialsUrl);

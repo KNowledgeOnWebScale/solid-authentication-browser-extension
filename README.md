@@ -2,8 +2,6 @@
 
 A firefox extension that replaces unauthenticated requests with authenticated Solid requests on Community Solid Servers.
 
-As of now, the extension only catches unauthenticated requests on [SolidLab Playground](https://pod.playground.solidlab.be/) pods.
-
 ## Client Credentials
 
 Requests are authenticated using the [Client Credentials API](https://communitysolidserver.github.io/CommunitySolidServer/5.x/usage/client-credentials/)
@@ -12,14 +10,23 @@ The extension uses temporary access tokens that are created using either the cli
 
 ## Development
 
-Test the plugin in a development instance of Firefox by running
-```shell script
-$ npm start
-```
-
-This also creates a zip file containing the extension in the directory `web-ext-artifacts`
-
-This artifact can also be created without starting the Firefox instance by running
+To test the extension, bundle it first using webpack by running
 ```shell script
 $ npm run build
 ```
+
+This should place all the necessary bundled files in the newly created `dist/` directory in this projects working directory.
+
+After that, install the [Firefox Browser Developer Edition](https://www.mozilla.org/en-US/firefox/developer/).
+
+Navigate to `about:debugging#/runtime/this-firefox` and select `Load Temporary Add-on` at the top of the page.
+
+When a file explorer appears, navigate tot the aforementioned `dist` directory and select the `manifest.json` file withing this directory.
+Do NOT select the manifest in the workdirectory itself, this will cause the extension to not work.
+
+The extension should now be running, both it's browser popup and the background process. 
+
+If you can't find the extension icon which opens the popup window, it's most likely unpinned and hidden away in the extension menu which can be opened by clicking the jigsaw icon on the topright of the browser window.
+
+
+

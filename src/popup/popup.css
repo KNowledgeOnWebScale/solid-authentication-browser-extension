@@ -11,6 +11,10 @@
     font-size: 12px;
 }
 
+#login-status{
+    color: green;
+}
+
 .hidden {
     display: none;
 }
