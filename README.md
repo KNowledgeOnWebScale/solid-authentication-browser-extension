@@ -22,11 +22,11 @@ After that, install the [Firefox Browser Developer Edition](https://www.mozilla.
 Navigate to `about:debugging#/runtime/this-firefox` and select `Load Temporary Add-on` at the top of the page.
 
 When a file explorer appears, navigate tot the aforementioned `dist` directory and select the `manifest.json` file withing this directory.
-Do NOT select the manifest in the workdirectory itself, this will cause the extension to not work.
+Do NOT select the manifest in the working directory itself, this will cause the extension to not work.
 
 The extension should now be running, both it's browser popup and the background process. 
 
-If you can't find the extension icon which opens the popup window, it's most likely unpinned and hidden away in the extension menu which can be opened by clicking the jigsaw icon on the topright of the browser window.
+If you can't find the extension icon which opens the popup window, it's most likely unpinned and hidden away in the extension menu which can be opened by clicking the jigsaw icon on the top right of the browser window.
 
 
 
