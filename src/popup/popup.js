@@ -5,7 +5,11 @@ function main() {
     $loginbutton.addEventListener('click', handleOnClickLogin);
 
     const $logoutbutton = document.getElementById('logout-button');
-    $logoutbutton.addEventListener('click', handleOnClickLogout)
+    $logoutbutton.addEventListener('click', handleOnClickLogout);
+
+    document.getElementById("email-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
+    document.getElementById("password-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
+    document.getElementById("idp-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
 
     chrome.runtime.sendMessage({
         msg: "check-authenticated"}, function(response) {
@@ -15,6 +19,12 @@ function main() {
         }
     });
 
+}
+
+function submitLoginOnKeyEnter(event) {
+    if (event.key === "Enter") {
+        handleOnClickLogin()
+    }
 }
 
 async function handleOnClickLogin(){
