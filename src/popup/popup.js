@@ -29,8 +29,10 @@ function handleAfterLogin(success){
 
     if (success) {
         document.getElementById("credential-input-forms").classList.add('hidden');
-        document.getElementById("login-status").classList.remove('hidden');
+        document.getElementById("login-status-success").classList.remove('hidden');
+        document.getElementById("login-status-fail").classList.add('hidden');
     } else {
-        
+        document.getElementById("login-status-fail").classList.remove('hidden');
+        document.getElementById("login-status-success").classList.add('hidden');
     }
 }

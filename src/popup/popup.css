@@ -11,10 +11,6 @@
     font-size: 12px;
 }
 
-#login-status{
-    color: green;
-}
-
 .hidden {
     display: none;
 }
@@ -31,4 +27,8 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.text-small {
+    font-size: small;
 }

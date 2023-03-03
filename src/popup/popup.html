@@ -12,7 +12,7 @@
 <body>
     <div class='m-3' id="popup-content">
         <h1 class="mb-3" id="title">Solid Authentication</h1>
-        <h3 class="mb-3 text-center hidden" id="login-status">You are now logged in</h3>
+        <h3 class="mb-3 text-center hidden text-success" id="login-status-success">You are now logged in</h3>
         <div id="credential-input-forms">
             <div class="input-group input-group-sm my-3">
             <span class="input-group-text" id="input-group-email">
@@ -39,10 +39,15 @@
                 <input type="url" id= "idp-input-form" class="form-control" placeholder="IDP" aria-label="IDP" aria-describedby="inputGroup-login-idp" tabindex="3">
             </div>
         </div>
-        <div class="d-flex justify-content-center">
-            <div class="btn btn-primary d-flex justify-content-center" id="generate-button" tabindex="4">
-                <p id="button-text">Log in</p>
-                <div class="loader hidden" id="loader"></div>
+        <div class="d-flex justify-content-center mb-0">
+            <div class="d-flex flex-column justify-content-center align-items-center">
+                <div class="btn btn-primary d-flex justify-content-center" id="generate-button" tabindex="4">
+                    <p id="button-text">Log in</p>
+                    <div class="loader hidden" id="loader"></div>
+                </div>
+                <p class="text text-center text-small text-danger hidden mt-1 mb-0" id="login-status-fail">
+                    Authentication failed
+                </p>
             </div>
         </div>
     </div>
