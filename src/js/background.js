@@ -19,6 +19,10 @@ async function rewriteRequestHeaders(details) {
         return
     }
 
+    if (id === undefined || secret === undefined || tokenUrl === undefined) {
+        return
+    }
+
     const {accessToken, dpopKey} = await getAccessToken(id, secret, tokenUrl);
 
     const dpopHeader = await createDpopHeader(details.url, "GET", dpopKey);
@@ -65,6 +69,16 @@ async function handleMessage(message) {
 
         return {
             success: success
+        };
+    } else if (message.msg === "logout") {
+        changeIcon(false);
+        id = undefined;
+        secret = undefined;
+        tokenUrl = undefined;
+    } else if (message.msg === "check-authenticated") {
+        let authenticated = (id !== undefined && secret !== undefined && tokenUrl !== undefined);
+        return {
+            authenticated: authenticated
         };
     }
 }

@@ -6,6 +6,14 @@
     width: 80px;
 }
 
+#logout-button {
+    background-color: #7c4dff;
+    border-color: #7c4dff;
+    box-shadow: #7c4dff;
+    height: 40px;
+    width: 90px;
+}
+
 #invalid-cred-text {
     color: red;
     font-size: 12px;
