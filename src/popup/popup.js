@@ -3,6 +3,7 @@ function main() {
 
     const $loginbutton = document.getElementById('generate-button');
     $loginbutton.addEventListener('click', handleOnClickLogin);
+    $loginbutton.addEventListener('keypress', submitLoginOnKeyEnter)
 
     const $logoutbutton = document.getElementById('logout-button');
     $logoutbutton.addEventListener('click', handleOnClickLogout);
