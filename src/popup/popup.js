@@ -6,8 +6,8 @@ async function handleOnClickLogin(){
     document.getElementById("loader").classList.remove('hidden');
     document.getElementById("button-text").classList.add('hidden');
 
-    const email = document.getElementById("email-input-form").value
-    const password = document.getElementById("password-input-form").value
+    let email = document.getElementById("email-input-form").value
+    let password = document.getElementById("password-input-form").value
     let idp  = document.getElementById("idp-input-form").value
 
     if (!idp.endsWith("/")) {
@@ -15,10 +15,12 @@ async function handleOnClickLogin(){
     }
 
     chrome.runtime.sendMessage({
-        message: "generate-id",
+        msg: "generate-id",
         email,
         password,
-        idp,}, handleAfterLogin);
+        idp,}, function(response) {
+        handleAfterLogin(response.success)
+    });
 }
 
 function handleAfterLogin(success){
@@ -28,5 +30,7 @@ function handleAfterLogin(success){
     if (success) {
         document.getElementById("credential-input-forms").classList.add('hidden');
         document.getElementById("login-status").classList.remove('hidden');
+    } else {
+        
     }
 }

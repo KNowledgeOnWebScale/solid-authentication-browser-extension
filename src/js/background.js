@@ -8,8 +8,6 @@ var tokenUrl;
 
 const isChrome = (navigator.userAgent.toLowerCase().includes("chrome"));
 
-chrome.runtime.onMessage.addListener(handleMessage);
-
 chrome.webNavigation.onCompleted.addListener(async function (details) {
 
 })
@@ -46,22 +44,28 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
     ["blocking", "requestHeaders"]
 )
 
-async function handleMessage(message, callback) {
-    if (message.message === "generate-id") {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    handleMessage(request).then(sendResponse);
+    return true;
+});
 
-        credentialsUrl = message.idp + "idp/credentials/"
+async function handleMessage(message) {
+    if (message.msg === "generate-id") {
+
+        credentialsUrl = message.idp + "idp/credentials/";
 
         tokenUrl = await getTokenUrl(message.idp);
-        //tokenUrl = message.domain + ".oidc/token"
 
         const response = await getToken(message.email, message.password, credentialsUrl);
-        id = response.id
-        secret = response.secret
+        id = response.id;
+        secret = response.secret;
 
         let success = (id !== undefined && secret !== undefined);
         changeIcon(success);
 
-        callback(success);
+        return {
+            success: success
+        };
     }
 }
 

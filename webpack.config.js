@@ -30,5 +30,6 @@ module.exports = {
             ]
         }),
         new NodePolyfillPlugin()
-    ]
+    ],
+    mode: 'production'
 }
