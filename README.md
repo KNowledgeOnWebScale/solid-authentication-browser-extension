@@ -29,4 +29,13 @@ The extension should now be running, both it's browser popup and the background 
 If you can't find the extension icon which opens the popup window, it's most likely unpinned and hidden away in the extension menu which can be opened by clicking the jigsaw icon on the top right of the browser window.
 
 
+# Session
+
+The extension will remember your credentials (ID & Secret combination) in your browser storage.
+
+This will allow the extension to restore and reuse your previously generated id and secret after you press 
+`reload`  in the aforementioned debugging menu until you log out manually.
+
+Because the extension is not [signed](https://support.mozilla.org/en-US/kb/add-on-signing-in-firefox) yet, it's [add-on id](https://extensionworkshop.com/documentation/develop/extensions-and-the-add-on-id/)
+is not static yet. Because of this, if you remove and reload the extension or restart your browser and reload the extension, the extension won't find it's previously saved credentials in the browser storage and you will have to log in again.
 
