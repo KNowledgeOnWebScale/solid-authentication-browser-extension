@@ -34,12 +34,6 @@ async function handleOnClickLogin(){
     let password = document.getElementById("password-input-form").value
     let idp  = document.getElementById("idp-input-form").value
 
-    if (email === '' && password === '' && idp === '') {
-        email = "***REMOVED***"
-        password = "***REMOVED***"
-        idp = "https://pod.playground.solidlab.be/"
-    }
-
     if (!idp.endsWith("/")) {
         idp = idp + "/"
     }
