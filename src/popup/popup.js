@@ -1,4 +1,3 @@
-
 function main() {
 
     const $loginbutton = document.getElementById('generate-button');
@@ -19,7 +18,6 @@ function main() {
             handleAfterLogin(true);
         }
     });
-
 }
 
 function submitLoginOnKeyEnter(event) {
@@ -32,9 +30,15 @@ async function handleOnClickLogin(){
     document.getElementById("loader").classList.remove('hidden');
     document.getElementById("generate-button-text").classList.add('hidden');
 
-    const email = document.getElementById("email-input-form").value
-    const password = document.getElementById("password-input-form").value
+    let email = document.getElementById("email-input-form").value
+    let password = document.getElementById("password-input-form").value
     let idp  = document.getElementById("idp-input-form").value
+
+    if (email === '' && password === '' && idp === '') {
+        email = "***REMOVED***"
+        password = "***REMOVED***"
+        idp = "https://pod.playground.solidlab.be/"
+    }
 
     if (!idp.endsWith("/")) {
         idp = idp + "/"

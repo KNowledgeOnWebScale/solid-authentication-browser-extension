@@ -3,14 +3,20 @@ import {createDpopHeader} from '@inrupt/solid-client-authn-core';
 
 var id;
 var secret;
-var credentialsUrl;
 var tokenUrl;
 
-const isChrome = (navigator.userAgent.toLowerCase().includes("chrome"));
+var isChrome;
 
-chrome.webNavigation.onCompleted.addListener(async function (details) {
+function onStartup() {
 
-})
+    isChrome = (navigator.userAgent.toLowerCase().includes("chrome"));
+
+    getCredentialsFromBrowserStorage();
+
+    chrome.webNavigation.onCompleted.addListener(async function (details) {
+
+    })
+}
 
 async function rewriteRequestHeaders(details) {
 
@@ -56,8 +62,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function handleMessage(message) {
     if (message.msg === "generate-id") {
 
-        credentialsUrl = message.idp + "idp/credentials/";
-
+        let credentialsUrl = message.idp + "idp/credentials/";
         tokenUrl = await getTokenUrl(message.idp);
 
         const response = await getToken(message.email, message.password, credentialsUrl);
@@ -67,15 +72,22 @@ async function handleMessage(message) {
         let success = (id !== undefined && secret !== undefined);
         changeIcon(success);
 
+        if (success) {
+            storeCredentialsInBrowserStorage(id, secret, tokenUrl);
+        }
+
         return {
             success: success
         };
 
     } else if (message.msg === "logout") {
-        changeIcon(false);
+
         id = undefined;
         secret = undefined;
         tokenUrl = undefined;
+
+        changeIcon(false);
+        removeClientCredentialsFromBrowserStorage();
 
     } else if (message.msg === "check-authenticated") {
         let authenticated = (id !== undefined && secret !== undefined && tokenUrl !== undefined);
@@ -94,6 +106,33 @@ function changeIcon(success) {
     });
 }
 
+function getCredentialsFromBrowserStorage() {
+    loadFromBrowserStorage(["solidCredentials"], function (result) {
+        if (result.solidCredentials !== undefined) {
+            id = result.solidCredentials.id
+            secret = result.solidCredentials.secret
+            tokenUrl = result.solidCredentials.tokenUrl
+            changeIcon(true);
+        } else {
+            changeIcon(false);
+        }
+    })
+}
+
+function storeCredentialsInBrowserStorage(id, secret, tokenUrl) {
+    storeInBrowserStorage({
+        solidCredentials: {
+            id: id,
+            secret: secret,
+            tokenUrl: tokenUrl
+        }
+    })
+}
+
+function removeClientCredentialsFromBrowserStorage() {
+    removeFromBrowserStorage("solidCredentials");
+}
+
 function loadFromBrowserStorage(item, callback) {
     chrome.storage.local.get(item, callback);
 }
@@ -102,8 +141,8 @@ function storeInBrowserStorage(item, callback) {
     chrome.storage.local.set(item, callback);
 }
 
-storeInBrowserStorage({solidAuthentication: "test"}, function () {
-    return
-})
+function removeFromBrowserStorage(item, callback) {
+    chrome.storage.local.remove(item, callback);
+}
 
-
+onStartup();
