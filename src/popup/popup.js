@@ -12,7 +12,8 @@ function main() {
     document.getElementById("idp-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
 
     chrome.runtime.sendMessage({
-        msg: "check-authenticated"}, function(response) {
+        msg: "check-authenticated"
+    }, function (response) {
         if (response.authenticated) {
             console.log(response);
             handleAfterLogin(true);
@@ -20,19 +21,26 @@ function main() {
     });
 }
 
+/**
+ * Function called by various keypress listeners that will trigger a log in event if the "Enter" key was pressed
+ * @param {Event} event - Keypress event
+ */
 function submitLoginOnKeyEnter(event) {
     if (event.key === "Enter") {
         handleOnClickLogin()
     }
 }
 
-async function handleOnClickLogin(){
+/**
+ * Handle user's request to log in
+ */
+async function handleOnClickLogin() {
     document.getElementById("loader").classList.remove('hidden');
     document.getElementById("generate-button-text").classList.add('hidden');
 
     let email = document.getElementById("email-input-form").value
     let password = document.getElementById("password-input-form").value
-    let idp  = document.getElementById("idp-input-form").value
+    let idp = document.getElementById("idp-input-form").value
 
     if (!idp.endsWith("/")) {
         idp = idp + "/"
@@ -42,11 +50,15 @@ async function handleOnClickLogin(){
         msg: "generate-id",
         email,
         password,
-        idp,}, function(response) {
+        idp,
+    }, function (response) {
         handleAfterLogin(response.success)
     });
 }
 
+/**
+ * Handle user's request to log out
+ */
 function handleOnClickLogout() {
     chrome.runtime.sendMessage({
         msg: "logout"
@@ -62,7 +74,11 @@ function handleOnClickLogout() {
     document.getElementById('idp-input-form').value = '';
 }
 
-function handleAfterLogin(success){
+/**
+ * Callback of attempted login in background process script
+ * @param {Boolean} success - Boolean value indicated if the log in attempt was successful
+ */
+function handleAfterLogin(success) {
     document.getElementById("loader").classList.add('hidden');
     document.getElementById("generate-button-text").classList.remove('hidden');
 

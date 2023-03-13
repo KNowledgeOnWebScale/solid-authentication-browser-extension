@@ -6,6 +6,7 @@ import {createDpopHeader, generateDpopKeyPair} from '@inrupt/solid-client-authn-
  * Generate a token and secret linked to the users account and WebID
  * @param {String} email - User email for pod on the server
  * @param {String} password - User password for pod on the server
+ * @param {String} credentialsUrl - Url from which user credentials can be requested
  * @returns {(String, String)} - Tuple containing user id and secret linked to the users WebID
  */
 export async function getToken(email, password, credentialsUrl) {
@@ -42,6 +43,11 @@ export async function getAccessToken(id, secret, tokenUrl) {
     return {accessToken, dpopKey};
 }
 
+/**
+ * Request the url from which access tokens can be requested on a server
+ * @param {String} url - Url/domain on which the server is hosted
+ * @returns {String} - Url from which access tokens can be requested
+ */
 export async function getTokenUrl(url) {
     let requestUrl = url + ".well-known/openid-configuration"
     const response = await fetch(requestUrl, {
