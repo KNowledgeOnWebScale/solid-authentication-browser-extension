@@ -11,9 +11,11 @@
     "copy-webpack-plugin": "^11.0.0",
     "node-fetch": "^2.0.0",
     "node-polyfill-webpack-plugin": "^2.0.1",
+    "web-ext-plugin": "^2.7.0",
     "webpack": "^5.76.2",
     "webpack-cli": "^5.0.1"
   },
+  "type": "module",
   "author": "Axel Lorreyne",
   "private": "true",
   "license": "MIT"

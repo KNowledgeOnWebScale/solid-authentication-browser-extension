@@ -1,8 +1,13 @@
-const CopyWebpackPlugin = require('copy-webpack-plugin')
-const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
-const path = require('path')
+import CopyWebpackPlugin from 'copy-webpack-plugin';
+import NodePolyfillPlugin from 'node-polyfill-webpack-plugin';
+import WebExtPlugin from "web-ext-plugin";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-module.exports = {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const config = {
     node: false,
     entry: {
         background: './src/js/background.js',
@@ -29,7 +34,10 @@ module.exports = {
                 }
             ]
         }),
-        new NodePolyfillPlugin()
+        new NodePolyfillPlugin(),
+        new WebExtPlugin({sourceDir: "../../dist"})
     ],
     mode: 'production'
 }
+
+export default config;
