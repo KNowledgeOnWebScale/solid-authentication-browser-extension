@@ -1,5 +1,6 @@
-import {getAccessToken, getToken, getTokenUrl} from "./solid.js";
+import {getAccessToken, getToken, getTokenUrl, sendHead} from "./solid.js";
 import {createDpopHeader} from '@inrupt/solid-client-authn-core';
+
 
 var id;
 var secret;
@@ -46,6 +47,10 @@ async function rewriteRequestHeaders(details) {
 
     // TODO: find a more elegant way to catch the access token creation request called from getAccessToken()
     if (details.method === "POST") {
+        return
+    }
+
+    if (await sendHead(details.url) !== 401) {
         return
     }
 

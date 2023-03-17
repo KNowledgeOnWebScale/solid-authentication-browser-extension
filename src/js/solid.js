@@ -58,3 +58,13 @@ export async function getTokenUrl(url) {
     });
     return (await (await response.json())).token_endpoint;
 }
+
+export async function sendHead(url) {
+    const response = await fetch(
+        url,
+        {
+            method: "HEAD"
+        }
+    )
+    return response.statusCode;
+}
