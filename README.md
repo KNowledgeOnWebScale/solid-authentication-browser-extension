@@ -39,3 +39,16 @@ This will allow the extension to restore and reuse your previously generated id 
 Because the extension is not [signed](https://support.mozilla.org/en-US/kb/add-on-signing-in-firefox) yet, it's [add-on id](https://extensionworkshop.com/documentation/develop/extensions-and-the-add-on-id/)
 is not static yet. Because of this, if you remove and reload the extension or restart your browser and reload the extension, the extension won't find it's previously saved credentials in the browser storage and you will have to log in again.
 
+# GET requests only
+
+At this time, the extension will only add authentication to GET requests.
+POST requests will not be blocked, but won't have any authentication either.
+
+This is because, the (blocking) web request listener that catches any outgoing request from the browser user,
+will catch any outgoing requests from the extension background script as well,
+specifically POST request [requesting the token url](https://github.com/KNowledgeOnWebScale/solid-authentication-browser-extension/blob/8211dab9b7a42fa98eeef37158084788e62d251a/src/js/solid.js#L51-L60)
+and [requesting access tokens from said url](https://github.com/KNowledgeOnWebScale/solid-authentication-browser-extension/blob/8211dab9b7a42fa98eeef37158084788e62d251a/src/js/solid.js#L30-L44).
+
+To prevent an infinite loop of blocking web request listeners catching each other, any POST request that is caught, 
+[will be passed](https://github.com/KNowledgeOnWebScale/solid-authentication-browser-extension/blob/8211dab9b7a42fa98eeef37158084788e62d251a/src/js/background.js#L48-L50) 
+before any token url or access token is requested, and consequently any authentication is added.  

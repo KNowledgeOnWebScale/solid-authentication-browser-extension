@@ -1,6 +1,6 @@
 function main() {
 
-    const $loginbutton = document.getElementById('generate-button');
+    const $loginbutton = document.getElementById('login-button');
     $loginbutton.addEventListener('click', handleOnClickLogin);
     $loginbutton.addEventListener('keypress', submitLoginOnKeyEnter)
 
@@ -64,7 +64,7 @@ function handleOnClickLogout() {
         msg: "logout"
     })
 
-    document.getElementById("generate-button").classList.remove("d-none");
+    document.getElementById("login-button").classList.remove("d-none");
     document.getElementById('logout-button').classList.add("d-none");
     document.getElementById("credential-input-forms").classList.remove('hidden');
     document.getElementById("login-status-success").classList.add('hidden');
@@ -86,7 +86,7 @@ function handleAfterLogin(success) {
         document.getElementById("credential-input-forms").classList.add('hidden');
         document.getElementById("login-status-success").classList.remove('hidden');
         document.getElementById("login-status-fail").classList.add('hidden');
-        document.getElementById("generate-button").classList.add("d-none");
+        document.getElementById("login-button").classList.add("d-none");
         document.getElementById('logout-button').classList.remove("d-none");
     } else {
         document.getElementById("login-status-fail").classList.remove('hidden');

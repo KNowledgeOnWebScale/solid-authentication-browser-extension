@@ -1,7 +1,6 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 const path = require('path')
-//const webpack = require('webpack')
 
 module.exports = {
     entry: {
