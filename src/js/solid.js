@@ -1,15 +1,16 @@
-import fetch from '/node-fetch';
-import {buildAuthenticatedFetch, createDpopHeader, generateDpopKeyPair} from '@inrupt/solid-client-authn-core';
+import fetch from 'node-fetch';
+import {createDpopHeader, generateDpopKeyPair} from '@inrupt/solid-client-authn-core';
 
 
 /**
  * Generate a token and secret linked to the users account and WebID
  * @param {String} email - User email for pod on the server
  * @param {String} password - User password for pod on the server
+ * @param {String} credentialsUrl - Url from which user credentials can be requested
  * @returns {(String, String)} - Tuple containing user id and secret linked to the users WebID
  */
-export async function getToken(email, password) {
-    const response = await fetch('https://pod.playground.solidlab.be/idp/credentials/', {
+export async function getToken(email, password, credentialsUrl) {
+    const response = await fetch(credentialsUrl, {
         method: 'POST',
         headers: {'content-type': 'application/json'},
         body: JSON.stringify({email: email, password: password, name: 'extension-token'}),
@@ -23,12 +24,12 @@ export async function getToken(email, password) {
  * Generate a temporary access token to make authenticated requests
  * @param {String} id - User id linked to the users WebID
  * @param {String} secret - User secret linked to the users WebID
- * @returns {String} - Temporary Access Token
+ * @param {String} tokenUrl - Url from which an access token can be requested from the server
+ * @returns {String, KeyPair} - Temporary Access Token and it's corresponding keypair
  */
-export async function getAccessToken(id, secret) {
+export async function getAccessToken(id, secret, tokenUrl) {
     const dpopKey = await generateDpopKeyPair();
     const authString = `${encodeURIComponent(id)}:${encodeURIComponent(secret)}`;
-    const tokenUrl = 'https://pod.playground.solidlab.be/.oidc/token';
     const receive = await fetch(tokenUrl, {
         method: 'POST',
         headers: {
@@ -39,16 +40,21 @@ export async function getAccessToken(id, secret) {
         body: 'grant_type=client_credentials&scope=webid',
     });
     const {access_token: accessToken} = await receive.json();
-    return accessToken;
+    return {accessToken, dpopKey};
 }
 
 /**
- * Make an authenticated request on a url using a temporary access token
- * @param {String} url - Url of a resource that needs authentication
- * @param {String} accessToken - User access token
- * @returns {Promise<Response>} - Authenticated response on url
+ * Request the url from which access tokens can be requested on a server
+ * @param {String} url - Url/domain on which the server is hosted
+ * @returns {String} - Url from which access tokens can be requested
  */
-export async function makeAuthenticadedRequest(url, accessToken) {
-    const authFetch = await buildAuthenticatedFetch(fetch, accessToken, {dpopKey});
-    return await authFetch(url);
+export async function getTokenUrl(url) {
+    let requestUrl = url + ".well-known/openid-configuration"
+    const response = await fetch(requestUrl, {
+        method: 'GET',
+        headers: {
+            'content-type': 'application/json'
+        }
+    });
+    return (await (await response.json())).token_endpoint;
 }

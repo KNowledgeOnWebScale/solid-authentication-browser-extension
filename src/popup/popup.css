@@ -1,0 +1,42 @@
+#login-button {
+    background-color: #7c4dff;
+    border-color: #7c4dff;
+    box-shadow: #7c4dff;
+    height: 40px;
+    width: 80px;
+}
+
+#logout-button {
+    background-color: #7c4dff;
+    border-color: #7c4dff;
+    box-shadow: #7c4dff;
+    height: 40px;
+    width: 90px;
+}
+
+#invalid-cred-text {
+    color: red;
+    font-size: 12px;
+}
+
+.hidden {
+    display: none;
+}
+
+.loader {
+    border: 6px solid #f3f3f3; /* Light grey */
+    border-top: 6px solid #7c4dff; /* 'Solid' purple */
+    border-radius: 50%;
+    width: 50%;
+    height: 100%;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.text-small {
+    font-size: small;
+}
