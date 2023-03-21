@@ -10,13 +10,28 @@ as identity provider.
 Requests are authenticated using the 
 [Client Credentials API](https://communitysolidserver.github.io/CommunitySolidServer/5.x/usage/client-credentials/)
 
-The extension uses temporary access tokens that are created using either the client's email and password used on the server or a previously created id and secret linked to the user's WebID on the server.
+The extension uses temporary access tokens that are created using either 
+the client's email and password used on the server or 
+a previously created id and secret linked to the user's WebID on the server.
+
+You can create a Solid pod for testing via the [SolidLab Playground](https://pod.playground.solidlab.be/).
+
+## Development environment
+
+- [Node.js](https://nodejs.org/en) v18.12.1
+- npm v8.19.2
+
+You find instructions on how to install Node.js and npm 
+[here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm#using-a-node-installer-to-install-nodejs-and-npm).
+
+Tested on macOS 13.1.
 
 ## Development
 
 To test the extension, bundle it first using webpack by running
-```shell script
-$ npm run build
+
+```shell
+npm run build
 ```
 
 This should place all the necessary bundled files in the newly created `dist/` directory in this projects working directory.
@@ -30,8 +45,23 @@ Do NOT select the manifest in the working directory itself, this will cause the 
 
 The extension should now be running, both it's browser popup and the background process. 
 
-If you can't find the extension icon which opens the popup window, it's most likely unpinned and hidden away in the extension menu which can be opened by clicking the jigsaw icon on the top right of the browser window.
+If you can't find the extension icon which opens the popup window, 
+it's most likely unpinned and hidden away in the extension menu which can be opened by 
+clicking the jigsaw icon on the top right of the browser window.
 
+## Package
+
+You can package the extension for distribution and signing via the following steps:
+
+1. Build the extension via
+   ```shell
+   npm run build
+   ```
+2. Package the extension via
+   ```shell
+   npm run package
+   ```
+3. The result is `solid-authentication.zip`.
 
 ## Session
 

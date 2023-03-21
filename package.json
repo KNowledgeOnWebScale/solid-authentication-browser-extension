@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack"
+    "build": "webpack",
+    "package": "cd dist && zip -r -FS ../solid-authentication.zip * --exclude '*.git*'"
   },
   "devDependencies": {
     "@inrupt/solid-client-authn-core": "^1.12.2",
