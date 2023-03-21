@@ -28,22 +28,23 @@ Tested on macOS 13.1.
 
 ## Development
 
-To test the extension, bundle it first using webpack by running
+You can develop and test the by doing the following steps:
 
-```shell
-npm run build
-```
-
-This should place all the necessary bundled files in the newly created `dist/` directory in this projects working directory.
-
-After that, install the [Firefox Browser Developer Edition](https://www.mozilla.org/en-US/firefox/developer/).
-
-Navigate to `about:debugging#/runtime/this-firefox` and select `Load Temporary Add-on` at the top of the page.
-
-When a file explorer appears, navigate tot the aforementioned `dist` directory and select the `manifest.json` file withing this directory.
+1. Install dependencies via 
+   ```shell
+   npm i
+   ```
+2. Build the extension using webpack via
+   ```shell
+   npm run build
+   ```
+   This places all the necessary bundled files in the newly created `dist` directory .
+3. Install the [Firefox Browser Developer Edition](https://www.mozilla.org/en-US/firefox/developer/).
+4. Navigate to `about:debugging#/runtime/this-firefox`.
+5. Select `Load Temporary Add-on` at the top of the page.
+6. When a file explorer appears, navigate tot the aforementioned `dist` directory and select the `manifest.json` file withing this directory.
 Do NOT select the manifest in the working directory itself, this will cause the extension to not work.
-
-The extension should now be running, both it's browser popup and the background process. 
+7. The extension should now be running, both it's browser popup and the background process. 
 
 If you can't find the extension icon which opens the popup window, 
 it's most likely unpinned and hidden away in the extension menu which can be opened by 
