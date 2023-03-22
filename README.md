@@ -82,8 +82,12 @@ The extension will remember your credentials (ID & Secret combination) in your b
 This will allow the extension to restore and reuse your previously generated id and secret after you press 
 `reload`  in the aforementioned debugging menu until you log out manually.
 
-Because the extension is not [signed](https://support.mozilla.org/en-US/kb/add-on-signing-in-firefox) yet, it's [add-on id](https://extensionworkshop.com/documentation/develop/extensions-and-the-add-on-id/)
-is not static yet. Because of this, if you remove and reload the extension or restart your browser and reload the extension, the extension won't find it's previously saved credentials in the browser storage and you will have to log in again.
+Because the extension is not [signed](https://support.mozilla.org/en-US/kb/add-on-signing-in-firefox) during development, 
+it's [add-on id](https://extensionworkshop.com/documentation/develop/extensions-and-the-add-on-id/)
+is not static. 
+Because of this, 
+if you remove and reload the extension or restart your browser and reload the extension, 
+the extension won't find it's previously saved credentials in the browser storage and you will have to log in again.
 
 ## GET requests only
 
