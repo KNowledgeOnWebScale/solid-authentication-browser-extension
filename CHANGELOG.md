@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Development environment information
 - Package instructions
+- Add instructions in README where people can find signed extension (see [issue 22](https://github.com/KNowledgeOnWebScale/solid-authentication-browser-extension/issues/22))
 
 ### Changed
 - Update development instructions

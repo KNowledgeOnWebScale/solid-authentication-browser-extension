@@ -64,6 +64,17 @@ You can package the extension for distribution and signing via the following ste
    ```
 3. The result is `solid-authentication.zip`.
 
+## Signed version
+
+If you want to use the extension with the standard edition of FireFox,
+you need to use the signed version of the extension.
+You find this version in assets of 
+the [releases](https://github.com/KNowledgeOnWebScale/solid-authentication-browser-extension/releases).
+The file ends with `.xpi`.
+
+You find more information about how to add an extension to FireFox from a file
+[here](https://support.mozilla.org/en-US/kb/find-and-install-add-ons-add-features-to-firefox#w_how-do-i-find-and-install-add-ons).
+
 ## Session
 
 The extension will remember your credentials (ID & Secret combination) in your browser storage.
