@@ -2,13 +2,14 @@
 
 This FireFox extension replaces unauthenticated requests with authenticated Solid requests.
 This extension only works with WebIDs that use 
-the [Community Solid Server](https://github.com/CommunitySolidServer/CommunitySolidServer) 
+the [Community Solid Server](https://github.com/CommunitySolidServer/CommunitySolidServer) (>= v4.0.0)
 as identity provider.
 
 ## Client Credentials
 
 Requests are authenticated using the 
-[Client Credentials API](https://communitysolidserver.github.io/CommunitySolidServer/5.x/usage/client-credentials/)
+[Client Credentials API](https://communitysolidserver.github.io/CommunitySolidServer/5.x/usage/client-credentials/).
+You need at least v4.0.0 of the Community Solid Server for this to work.
 
 The extension uses temporary access tokens that are created using either 
 the client's email and password used on the server or 
