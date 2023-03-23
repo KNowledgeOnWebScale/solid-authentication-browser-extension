@@ -76,38 +76,38 @@ async function rewriteRequestHeaders(details) {
  */
 async function handleMessage(message) {
     if (message.msg === "generate-id") {
-
-        let credentialsUrl = message.idp + "idp/credentials/";
+        const credentialsUrl = message.idp + "idp/credentials/";
         tokenUrl = await getTokenUrl(message.idp);
 
-        const response = await getToken(message.email, message.password, credentialsUrl);
-        id = response.id;
-        secret = response.secret;
-
-        let success = (id !== undefined && secret !== undefined);
-        changeIcon(success);
-
-        if (success) {
+        let success = true;
+        let error;
+        try {
+            const {id, secret} = await getToken(message.email, message.password, credentialsUrl);
             storeCredentialsInBrowserStorage(id, secret, tokenUrl);
+        } catch (e) {
+            success = false;
+            error = e.message;
         }
 
+        changeIcon(success);
+        console.log(success);
+        console.log(error);
+
         return {
-            success: success
+            success,
+            error
         };
-
     } else if (message.msg === "logout") {
-
         id = undefined;
         secret = undefined;
         tokenUrl = undefined;
 
         changeIcon(false);
         removeClientCredentialsFromBrowserStorage();
-
     } else if (message.msg === "check-authenticated") {
-        let authenticated = (id !== undefined && secret !== undefined && tokenUrl !== undefined);
+        const authenticated = (id !== undefined && secret !== undefined && tokenUrl !== undefined);
         return {
-            authenticated: authenticated
+            authenticated
         };
     }
 }
