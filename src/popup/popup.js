@@ -92,7 +92,7 @@ function handleAfterLoginAttempt(options) {
         document.getElementById("login-button").classList.add("d-none");
         document.getElementById('logout-button').classList.remove("d-none");
     } else {
-        document.getElementById('login-fail-error').innerText = error;
+        document.getElementById('login-fail-error').innerText = error + '.';
         document.getElementById("login-status-fail").classList.remove('hidden');
         document.getElementById("login-status-success").classList.add('hidden');
     }

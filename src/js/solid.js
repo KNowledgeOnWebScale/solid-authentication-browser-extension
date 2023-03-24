@@ -10,6 +10,7 @@ import {createDpopHeader, generateDpopKeyPair} from '@inrupt/solid-client-authn-
  * @returns {(String, String)} - Tuple containing user id and secret linked to the users WebID
  */
 export async function getToken(email, password, credentialsUrl) {
+    const invalidIDPMessage = 'IDP is invalid';
     let response;
 
     try {
@@ -19,14 +20,14 @@ export async function getToken(email, password, credentialsUrl) {
             body: JSON.stringify({email: email, password: password, name: 'extension-token'}),
         });
     } catch (e) {
-        throw new Error('IDP is invalid.');
+        throw new Error(invalidIDPMessage);
     }
 
     if (response.status === 500) {
         const error = await response.json();
         throw new Error(error.message);
     } else if (!response.ok) {
-        throw new Error('IDP is invalid.');
+        throw new Error(invalidIDPMessage);
     }
 
     const {id, secret} = await response.json();
