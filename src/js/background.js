@@ -45,8 +45,8 @@ function main() {
  */
 async function rewriteRequestHeaders(details) {
 
-    // TODO: find a more elegant way to catch the access token creation request called from getAccessToken()
-    if (details.method === "POST") {
+    // TODO: find a more elegant way to catch the access token creation request or HEAD status code test request
+    if (details.method === "POST" || details.method === "HEAD") {
         return
     }
 
