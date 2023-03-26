@@ -4,6 +4,7 @@ import {createDpopHeader} from '@inrupt/solid-client-authn-core';
 var id;
 var secret;
 var tokenUrl;
+var domainFilter;
 
 var isChrome;
 
@@ -46,11 +47,15 @@ async function rewriteRequestHeaders(details) {
 
     // TODO: find a more elegant way to catch the access token creation request called from getAccessToken()
     if (details.method === "POST") {
-        return
+        return;
     }
 
-    if (id === undefined || secret === undefined || tokenUrl === undefined) {
-        return
+    if (id === undefined || secret === undefined || tokenUrl === undefined || domainFilter === undefined) {
+        return;
+    }
+
+    if (domainFilter !== '' && !details.url.includes(domainFilter)) {
+        return;
     }
 
     const {accessToken, dpopKey} = await getAccessToken(id, secret, tokenUrl);
@@ -60,14 +65,14 @@ async function rewriteRequestHeaders(details) {
     details.requestHeaders.push({
         name: "authorization",
         value: "DPoP " + accessToken
-    })
+    });
 
     details.requestHeaders.push({
         name: "dpop",
         value: dpopHeader
-    })
+    });
 
-    return {requestHeaders: details.requestHeaders}
+    return {requestHeaders: details.requestHeaders};
 }
 
 /**
@@ -84,11 +89,13 @@ async function handleMessage(message) {
         id = response.id;
         secret = response.secret;
 
+        domainFilter = message.filter;
+
         let success = (id !== undefined && secret !== undefined);
         changeIcon(success);
 
         if (success) {
-            storeCredentialsInBrowserStorage(id, secret, tokenUrl);
+            storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter);
         }
 
         return {
@@ -100,6 +107,7 @@ async function handleMessage(message) {
         id = undefined;
         secret = undefined;
         tokenUrl = undefined;
+        domainFilter = undefined;
 
         changeIcon(false);
         removeClientCredentialsFromBrowserStorage();
@@ -134,6 +142,7 @@ function getCredentialsFromBrowserStorage() {
             id = result.solidCredentials.id
             secret = result.solidCredentials.secret
             tokenUrl = result.solidCredentials.tokenUrl
+            domainFilter = result.solidCredentials.domainFilter;
             changeIcon(true);
         } else {
             changeIcon(false);
@@ -147,12 +156,13 @@ function getCredentialsFromBrowserStorage() {
  * @param {String} secret - Client secret
  * @param {String} tokenUrl - Token url from which access tokens can be requested
  */
-function storeCredentialsInBrowserStorage(id, secret, tokenUrl) {
+function storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter) {
     storeInBrowserStorage({
         solidCredentials: {
             id: id,
             secret: secret,
-            tokenUrl: tokenUrl
+            tokenUrl: tokenUrl,
+            domainFilter: domainFilter
         }
     })
 }

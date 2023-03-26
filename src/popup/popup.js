@@ -10,6 +10,7 @@ function main() {
     document.getElementById("email-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
     document.getElementById("password-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
     document.getElementById("idp-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
+    document.getElementById("domain-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
 
     chrome.runtime.sendMessage({
         msg: "check-authenticated"
@@ -41,6 +42,7 @@ async function handleOnClickLogin() {
     let email = document.getElementById("email-input-form").value
     let password = document.getElementById("password-input-form").value
     let idp = document.getElementById("idp-input-form").value
+    let filter = document.getElementById("domain-input-form").value
 
     if (!idp.endsWith("/")) {
         idp = idp + "/"
@@ -51,6 +53,7 @@ async function handleOnClickLogin() {
         email,
         password,
         idp,
+        filter,
     }, function (response) {
         handleAfterLogin(response.success)
     });
@@ -72,6 +75,7 @@ function handleOnClickLogout() {
     document.getElementById("email-input-form").value = '';
     document.getElementById('password-input-form').value = '';
     document.getElementById('idp-input-form').value = '';
+    document.getElementById('domain-input-form').value = '';
 }
 
 /**
