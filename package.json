@@ -11,10 +11,15 @@
     "copy-webpack-plugin": "^11.0.0",
     "node-fetch": "^2.0.0",
     "node-polyfill-webpack-plugin": "^2.0.1",
+    "node-stdlib-browser": "^1.2.0",
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1"
   },
   "author": "Axel Lorreyne",
   "private": "true",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@inrupt/solid-client-authn-browser": "^1.14.0",
+    "@inrupt/solid-client-authn-node": "^1.14.0"
+  }
 }

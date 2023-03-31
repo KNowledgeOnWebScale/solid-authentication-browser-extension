@@ -1,12 +1,15 @@
 import {getAccessToken, getToken, getTokenUrl} from "./solid.js";
 import {createDpopHeader} from '@inrupt/solid-client-authn-core';
 
+import {LocalStorage} from "./local-storage";
+import {getSessionFromStorage} from "@inrupt/solid-client-authn-node";
+
 var id;
 var secret;
 var tokenUrl;
 
 var isChrome;
-
+const localStorage = new LocalStorage();
 
 /**
  * Main function that is called upon extension (re)start
@@ -34,6 +37,14 @@ function main() {
             urls: ["<all_urls>"]
         },
         ["blocking", "requestHeaders"]
+    )
+
+    chrome.webRequest.onBeforeRequest.addListener(
+      checkForOIDCRedirect,
+      {
+          urls: ["<all_urls>"]
+      },
+      ["blocking", "requestBody"]
     )
 }
 
@@ -68,6 +79,23 @@ async function rewriteRequestHeaders(details) {
     })
 
     return {requestHeaders: details.requestHeaders}
+}
+
+async function checkForOIDCRedirect(details) {
+    if (details.url.includes('https://whateveryouwant-solid.com/')) {
+        loadFromBrowserStorage('oidcSessionID', async (item) => {
+            const {oidcSessionID} = item;
+            console.log(oidcSessionID);
+            const session = await getSessionFromStorage(oidcSessionID, localStorage);
+            await session.handleIncomingRedirect(details.url);
+            console.log(session.info.isLoggedIn);
+        });
+
+        details.cancel = true;
+        return details;
+    }
+
+    return details;
 }
 
 /**
@@ -109,6 +137,17 @@ async function handleMessage(message) {
         return {
             authenticated: authenticated
         };
+    } else if (message.msg === "store-session-id") {
+        console.log(message.id);
+        storeInBrowserStorage({
+            oidcSessionID: message.id
+        });
+    } else if (message.msg === "local-storage-get") {
+        await localStorage.get(message.key);
+    } else if (message.msg === "local-storage-set") {
+        await localStorage.set(message.key, message.value);
+    } else if (message.msg === "local-storage-delete") {
+        await localStorage.delete(message.key);
     }
 }
 

@@ -1,3 +1,6 @@
+import {Session} from '@inrupt/solid-client-authn-browser';
+import {PopupStorage} from "../js/popup-storage";
+
 function main() {
 
     const $loginbutton = document.getElementById('login-button');
@@ -46,14 +49,17 @@ async function handleOnClickLogin() {
         idp = idp + "/"
     }
 
-    chrome.runtime.sendMessage({
-        msg: "generate-id",
-        email,
-        password,
-        idp,
-    }, function (response) {
-        handleAfterLogin(response.success)
-    });
+    const result = await oidcLogin(idp);
+    console.log(result);
+    //
+    // chrome.runtime.sendMessage({
+    //     msg: "generate-id",
+    //     email,
+    //     password,
+    //     idp,
+    // }, function (response) {
+    //     handleAfterLogin(response.success)
+    // });
 }
 
 /**
@@ -92,6 +98,33 @@ function handleAfterLogin(success) {
         document.getElementById("login-status-fail").classList.remove('hidden');
         document.getElementById("login-status-success").classList.add('hidden');
     }
+}
+
+async function oidcLogin(oidcIssuer) {
+    if (!oidcIssuer) {
+        return;
+    }
+    const storage = new PopupStorage();
+    const session = new Session({
+        secureStorage: storage,
+        insecureStorage: storage
+    });
+
+    chrome.runtime.sendMessage({
+        msg: "store-session-id",
+        id: session.info.sessionId,
+    });
+
+    await session.login({
+        // Specify the URL of the user's Solid Identity Provider;
+        // e.g., "https://login.inrupt.com".
+        oidcIssuer,
+        // Specify the URL the Solid Identity Provider should redirect the user once logged in,
+        // e.g., the current page for a single-page app.
+        redirectUrl: 'https://whateveryouwant-solid.com/',
+        // Provide a name for the application when sending to the Solid Identity Provider
+        clientName: "My application"
+    });
 }
 
 main();
