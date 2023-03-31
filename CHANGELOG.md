@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Update development instructions
+- Only authenticate requests that return 401 unauthorized (see [issue 10](https://github.com/KNowledgeOnWebScale/solid-authentication-browser-extension/issues/10))
 
 ## 1.0.0 - 2023-03-17
 
