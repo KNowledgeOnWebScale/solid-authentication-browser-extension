@@ -90,8 +90,6 @@ async function handleMessage(message) {
         }
 
         changeIcon(success);
-        console.log(success);
-        console.log(error);
 
         return {
             success,
