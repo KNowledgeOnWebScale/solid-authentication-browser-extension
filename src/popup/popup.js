@@ -15,8 +15,10 @@ function main() {
         msg: "check-authenticated"
     }, function (response) {
         if (response.authenticated) {
-            console.log(response);
-            handleAfterLoginAttempt(true);
+            handleAfterLoginAttempt({
+                success: true,
+                error: undefined
+            });
         }
     });
 }
