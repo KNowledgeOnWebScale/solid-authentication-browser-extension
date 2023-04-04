@@ -7,7 +7,7 @@
     "package": "cd dist && zip -r -FS ../solid-authentication.zip * --exclude '*.git*'"
   },
   "devDependencies": {
-    "@inrupt/solid-client-authn-core": "^1.12.2",
+    "@inrupt/solid-client-authn-core": "1.12.2",
     "copy-webpack-plugin": "^11.0.0",
     "node-fetch": "^2.0.0",
     "node-polyfill-webpack-plugin": "^2.0.1",
@@ -19,7 +19,7 @@
   "private": "true",
   "license": "MIT",
   "dependencies": {
-    "@inrupt/solid-client-authn-browser": "^1.14.0",
+    "@inrupt/solid-client-authn-browser": "1.12.2",
     "@inrupt/solid-client-authn-node": "^1.14.0"
   }
 }

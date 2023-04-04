@@ -1,8 +1,9 @@
-import {getAccessToken, getToken, getTokenUrl} from "./solid.js";
+import {getAccessToken, getToken, getTokenUrl, sendHead} from "./solid.js";
 import {createDpopHeader} from '@inrupt/solid-client-authn-core';
+// import {buildAuthenticatedHeaders} from '@inrupt/solid-client-authn-browser';
 
 import {LocalStorage} from "./local-storage";
-import {getSessionFromStorage} from "@inrupt/solid-client-authn-node";
+import {Session} from "@inrupt/solid-client-authn-browser";
 
 var id;
 var secret;
@@ -10,12 +11,15 @@ var tokenUrl;
 
 var isChrome;
 const localStorage = new LocalStorage();
+const session = new Session();
+session.clientAuthentication.cleanUrlAfterRedirect = () => {};
+let tab;
+const pendingRequests = {};
 
 /**
  * Main function that is called upon extension (re)start
  */
 function main() {
-
     isChrome = (navigator.userAgent.toLowerCase().includes("chrome"));
 
     getCredentialsFromBrowserStorage();
@@ -32,17 +36,27 @@ function main() {
      * Blocking web request listener that blocks a web request until the alteration of its request headers is completed
      */
     chrome.webRequest.onBeforeSendHeaders.addListener(
-        rewriteRequestHeaders,
+        rewriteRequestHeadersUsingOIDC,
         {
+            // urls: ["https://pod.playground.solidlab.be/*", "https://*.solidcommunity.net/*", "*.inrupt.com/*", "<all_urls>"]
             urls: ["<all_urls>"]
         },
         ["blocking", "requestHeaders"]
     )
 
+    chrome.webRequest.onBeforeSendHeaders.addListener(
+      checkForPendingRequests,
+      {
+          // urls: ["https://pod.playground.solidlab.be/*", "https://*.solidcommunity.net/*", "*.inrupt.com/*", "<all_urls>"]
+          urls: ["<all_urls>"]
+      },
+      ["blocking", "requestHeaders"]
+    )
+
     chrome.webRequest.onBeforeRequest.addListener(
       checkForOIDCRedirect,
       {
-          urls: ["<all_urls>"]
+          urls: ["https://whateveryouwant-solid.com/*"]
       },
       ["blocking", "requestBody"]
     )
@@ -53,7 +67,7 @@ function main() {
  * @param {Object} details - Request details passed on from blocking web request listener
  * @returns {Object} - Object containing altered request headers, to be handled by the web request listener callback
  */
-async function rewriteRequestHeaders(details) {
+async function rewriteRequestHeadersUsingClientCredentials(details) {
 
     // TODO: find a more elegant way to catch the access token creation request called from getAccessToken()
     if (details.method === "POST") {
@@ -71,31 +85,85 @@ async function rewriteRequestHeaders(details) {
     details.requestHeaders.push({
         name: "authorization",
         value: "DPoP " + accessToken
-    })
+    });
 
     details.requestHeaders.push({
         name: "dpop",
         value: dpopHeader
-    })
+    });
 
     return {requestHeaders: details.requestHeaders}
 }
 
-async function checkForOIDCRedirect(details) {
-    if (details.url.includes('https://whateveryouwant-solid.com/')) {
-        loadFromBrowserStorage('oidcSessionID', async (item) => {
-            const {oidcSessionID} = item;
-            console.log(oidcSessionID);
-            const session = await getSessionFromStorage(oidcSessionID, localStorage);
-            await session.handleIncomingRedirect(details.url);
-            console.log(session.info.isLoggedIn);
-        });
-
-        details.cancel = true;
-        return details;
+async function rewriteRequestHeadersUsingOIDC(details) {
+    if (details.method === "POST" || details.method === 'HEAD') {
+        console.log(`rewriteRequestHeadersUsingOIDC: ignore ${details.url} because ${details.method}`);
+        return
     }
 
-    return details;
+    if (findHeader(details.requestHeaders, 'x-solid-extension') === 'sniff-headers') {
+        console.log(`rewriteRequestHeadersUsingOIDC: ignore ${details.url} because ${findHeader(details.requestHeaders, 'x-solid-extension')}`);
+        return
+    }
+
+    const statusCode = await sendHead(details.url);
+
+    if (statusCode !== 401) {
+        console.log(`rewriteRequestHeadersUsingOIDC: ignore ${details.url} because status ${statusCode} !== 401`);
+        return
+    }
+
+    console.log(details.method);
+    console.log(details.url);
+    console.log(session.info);
+    pendingRequests[details.url] = {
+        status: 'pending'
+    };
+    console.log(pendingRequests[details.url]);
+    let response;
+    try {
+        await session.fetch(details.url, {
+            headers: {
+                'x-solid-extension': 'sniff-headers'
+            }
+        });
+    } catch (e) {
+        // This error is expected, because the fetch is only done to get the headers.
+    }
+
+    console.log(pendingRequests[details.url]);
+
+    details.requestHeaders.push({
+        name: "authorization",
+        value: findHeader(pendingRequests[details.url].headers, 'authorization')
+    })
+
+    details.requestHeaders.push({
+        name: "dpop",
+        value: findHeader(pendingRequests[details.url].headers, 'dpop')
+    })
+
+    console.log(details.requestHeaders);
+    delete pendingRequests[details.url];
+
+    return {requestHeaders: details.requestHeaders}
+}
+
+async function checkForPendingRequests(details) {
+    if (findHeader(details.requestHeaders, 'x-solid-extension') === 'sniff-headers') {
+        pendingRequests[details.url].headers = details.requestHeaders;
+        pendingRequests[details.url].status = 'headers available';
+        console.log(details.requestHeaders);
+        return {cancel: true};
+    }
+}
+
+async function checkForOIDCRedirect(details) {
+    console.log('web request made', details.url);
+    session.handleIncomingRedirect(details.url).then(info => console.log('a', info));
+    console.log(session.info)
+    chrome.tabs.remove(tab.id);
+    return { cancel: true }
 }
 
 /**
@@ -148,6 +216,14 @@ async function handleMessage(message) {
         await localStorage.set(message.key, message.value);
     } else if (message.msg === "local-storage-delete") {
         await localStorage.delete(message.key);
+    } else if (message.msg === "login-with-oidc") {
+        session.login({
+            redirectUrl: 'https://whateveryouwant-solid.com/',
+            handleRedirect(url) {
+                tab = chrome.tabs.create({ url }, t => { tab = t });
+            },
+            oidcIssuer: message.oidcIssuer
+        });
     }
 }
 
@@ -228,6 +304,24 @@ function storeInBrowserStorage(item, callback) {
  */
 function removeFromBrowserStorage(item, callback) {
     chrome.storage.local.remove(item, callback);
+}
+
+function findHeader(requestHeaders, headerName) {
+    if (!requestHeaders) {
+        return null;
+    }
+
+    let i = 0;
+
+    while(i < requestHeaders.length && requestHeaders[i].name !== headerName) {
+        i ++;
+    }
+
+    if (i < requestHeaders.length) {
+        return requestHeaders[i].value;
+    }
+
+    return null;
 }
 
 main();

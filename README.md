@@ -107,3 +107,12 @@ before any token url or access token is requested, and consequently any authenti
 ## Screencast
 
 You find a screencast of the extension [here](https://cloud.ilabt.imec.be/index.php/s/QbabTcHkX2J8GHG).
+
+## Tested servers with OIDC login
+
+| IDP | Resource | Works? | Comments                                             |                                                      
+|-----|----------|--------|------------------------------------------------------|
+| CSS | CSS      | Yes    |                                                      |
+| ESS | ESS      | Yes    |                                                      |
+| NSS | NSS      | No     | Something weird with status codes received from NSS. |
+| NSS | CSS      | Yes    |                                                      |
