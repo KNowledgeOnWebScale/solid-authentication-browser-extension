@@ -2,7 +2,6 @@ import {getAccessToken, getToken, getTokenUrl, sendHead} from "./solid.js";
 import {createDpopHeader} from '@inrupt/solid-client-authn-core';
 // import {buildAuthenticatedHeaders} from '@inrupt/solid-client-authn-browser';
 
-import {LocalStorage} from "./local-storage";
 import {Session} from "@inrupt/solid-client-authn-browser";
 
 var id;
@@ -10,7 +9,6 @@ var secret;
 var tokenUrl;
 
 var isChrome;
-const localStorage = new LocalStorage();
 const session = new Session();
 session.clientAuthentication.cleanUrlAfterRedirect = () => {};
 let tab;
@@ -120,7 +118,6 @@ async function rewriteRequestHeadersUsingOIDC(details) {
         status: 'pending'
     };
     console.log(pendingRequests[details.url]);
-    let response;
     try {
         await session.fetch(details.url, {
             headers: {
@@ -210,12 +207,6 @@ async function handleMessage(message) {
         storeInBrowserStorage({
             oidcSessionID: message.id
         });
-    } else if (message.msg === "local-storage-get") {
-        await localStorage.get(message.key);
-    } else if (message.msg === "local-storage-set") {
-        await localStorage.set(message.key, message.value);
-    } else if (message.msg === "local-storage-delete") {
-        await localStorage.delete(message.key);
     } else if (message.msg === "login-with-oidc") {
         session.login({
             redirectUrl: 'https://whateveryouwant-solid.com/',
