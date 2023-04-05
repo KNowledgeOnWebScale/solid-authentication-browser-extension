@@ -1,14 +1,7 @@
-import {getAccessToken, getToken, getTokenUrl, sendHead} from "./solid.js";
-import {createDpopHeader} from '@inrupt/solid-client-authn-core';
-
+import {sendHead} from "./solid.js";
 import {OIDCHandler} from "./oidc-handler";
 import {ClientCredentialsHandler} from "./client-credentials-handler";
 
-var id;
-var secret;
-var tokenUrl;
-
-var isChrome;
 const oidcHandler = new OIDCHandler({
     loggedInCallback: changeIcon,
     loggedOutCallback: changeIcon
@@ -18,15 +11,19 @@ const clientCredentialsHandler = new ClientCredentialsHandler({
     loggedOutCallback: changeIcon
 });
 
-let handler = oidcHandler;
+let handler;
 
 /**
  * Main function that is called upon extension (re)start
  */
-function main() {
-    isChrome = (navigator.userAgent.toLowerCase().includes("chrome"));
+async function main() {
+    if (await getCurrentLoginMethod() === 'oidc') {
+        handler = oidcHandler;
+    } else {
+        handler = clientCredentialsHandler;
+    }
 
-    getCredentialsFromBrowserStorage();
+    handler.restore();
 
     /**
      * Runtime message listener, capable of handling and properly awaiting asynchronous functions
@@ -71,34 +68,6 @@ function main() {
  * @param {Object} details - Request details passed on from blocking web request listener
  * @returns {Object} - Object containing altered request headers, to be handled by the web request listener callback
  */
-async function rewriteRequestHeadersUsingClientCredentials(details) {
-
-    // TODO: find a more elegant way to catch the access token creation request called from getAccessToken()
-    if (details.method === "POST") {
-        return
-    }
-
-    if (id === undefined || secret === undefined || tokenUrl === undefined) {
-        return
-    }
-
-    const {accessToken, dpopKey} = await getAccessToken(id, secret, tokenUrl);
-
-    const dpopHeader = await createDpopHeader(details.url, "GET", dpopKey);
-
-    details.requestHeaders.push({
-        name: "authorization",
-        value: "DPoP " + accessToken
-    });
-
-    details.requestHeaders.push({
-        name: "dpop",
-        value: dpopHeader
-    });
-
-    return {requestHeaders: details.requestHeaders}
-}
-
 async function rewriteRequestHeadersForAuth(details) {
     if (details.method !== 'GET') {
         console.log(`rewriteRequestHeadersUsingOIDC: ignore ${details.url} because ${details.method}`);
@@ -142,10 +111,11 @@ async function rewriteRequestHeadersForAuth(details) {
  */
 async function handleMessage(message) {
     if (message.msg === "login-with-client-credentials") {
+        setCurrentLoginMethod('client-credentials');
         handler = clientCredentialsHandler;
 
         const success = await handler.login({
-            iodcIssuer: message.idp,
+            oidcIssuer: message.idp,
             email: message.email,
             password: message.password
         });
@@ -161,6 +131,7 @@ async function handleMessage(message) {
             authenticated: handler.isLoggedIn()
         };
     } else if (message.msg === "login-with-oidc") {
+        setCurrentLoginMethod('oidc');
         handler.login({oidcIssuer: message.oidcIssuer});
     }
 }
@@ -179,28 +150,25 @@ function changeIcon(success) {
 }
 
 /**
- * Load any potential client credentials still stored in the browser storage
+ *
+ * @returns {Promise<unknown>}: "oidc" or "client-credentials".
  */
-function getCredentialsFromBrowserStorage() {
-    loadFromBrowserStorage("solidCredentials", function (result) {
-        if (result.solidCredentials !== undefined) {
-            id = result.solidCredentials.id
-            secret = result.solidCredentials.secret
-            tokenUrl = result.solidCredentials.tokenUrl
-            changeIcon(true);
-        } else {
-            changeIcon(false);
-        }
-    })
+async function getCurrentLoginMethod() {
+    return new Promise(resolve => {
+        let method = 'oidc' // Default method
+
+        chrome.storage.local.get('loginMethod', result => {
+            if (result.loginMethod) {
+                method = result.loginMethod;
+            }
+
+            resolve(method);
+        });
+    });
 }
 
-/**
- * Load item from the browser storage before calling a callback function with the loaded item as a parameter
- * @param {Object} item - Object containing the item which should be stored in the browser storage
- * @param {Function} callback - Callback function which is called after the item is added
- */
-function loadFromBrowserStorage(item, callback) {
-    chrome.storage.local.get(item, callback);
+function setCurrentLoginMethod(loginMethod) {
+    chrome.storage.local.set({loginMethod});
 }
 
 main();

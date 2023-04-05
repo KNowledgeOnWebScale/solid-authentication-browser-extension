@@ -69,6 +69,23 @@ export class ClientCredentialsHandler extends Handler {
     return this.id === undefined && this.secret === undefined && this.tokenUrl === undefined;
   }
 
+  restore() {
+    this._loadFromBrowserStorage("solidCredentials", result => {
+      if (result.solidCredentials !== undefined) {
+        this.id = result.solidCredentials.id;
+        this.secret = result.solidCredentials.secret;
+        this.tokenUrl = result.solidCredentials.tokenUrl;
+        if (this.loggedInCallback) {
+          this.loggedInCallback(true);
+        }
+      } else {
+        if (this.loggedOutCallback) {
+          this.loggedOutCallback(false);
+        }
+      }
+    })
+  }
+
   /**
    * Remove any potential client credentials from browser storage
    */
@@ -108,5 +125,14 @@ export class ClientCredentialsHandler extends Handler {
    */
   _storeInBrowserStorage(item, callback) {
     chrome.storage.local.set(item, callback);
+  }
+
+  /**
+   * Load item from the browser storage before calling a callback function with the loaded item as a parameter
+   * @param {Object} item - Object containing the item which should be stored in the browser storage
+   * @param {Function} callback - Callback function which is called after the item is added
+   */
+  _loadFromBrowserStorage(item, callback) {
+    chrome.storage.local.get(item, callback);
   }
 }

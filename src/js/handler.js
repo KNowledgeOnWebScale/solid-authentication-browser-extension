@@ -19,6 +19,10 @@ export class Handler {
     throw new Error("You must implement the method isLoggedIn.");
   }
 
+  restore() {
+    throw new Error("You must implement the method restore.");
+  }
+
   cleanUpRequest(url) {
     // Implementing this method is not required.
   }

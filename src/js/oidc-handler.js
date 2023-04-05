@@ -98,6 +98,16 @@ export class OIDCHandler extends Handler {
     return this.session.info.isLoggedIn;
   }
 
+  restore() {
+    // TODO
+    if (this.isLoggedIn() && this.loggedInCallback) {
+      this.loggedInCallback(true);
+    } else if (this.loggedOutCallback) {
+      this.loggedOutCallback(false);
+      console.log('OIDCHandler: no session restored.');
+    }
+  }
+
   _createNewSession() {
     this.session = new Session();
     this.session.clientAuthentication.cleanUrlAfterRedirect = () => {};
