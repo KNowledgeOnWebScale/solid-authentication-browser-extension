@@ -76,7 +76,8 @@ export class OIDCHandler extends Handler {
       handleRedirect: (url) => {
         this.tab = chrome.tabs.create({ url }, t => { this.tab = t });
       },
-      oidcIssuer
+      oidcIssuer,
+      clientName: 'Solid Authentication'
     });
   }
 
