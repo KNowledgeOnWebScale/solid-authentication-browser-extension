@@ -155,7 +155,6 @@ async function handleMessage(message) {
         };
 
     } else if (message.msg === "logout") {
-        changeIcon(false);
         handler.logout();
     } else if (message.msg === "check-authenticated") {
         let authenticated = (id !== undefined && secret !== undefined && tokenUrl !== undefined);
