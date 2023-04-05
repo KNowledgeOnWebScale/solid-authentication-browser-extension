@@ -8,6 +8,11 @@ function main() {
 
     const $logoutbutton = document.getElementById('logout-button');
     $logoutbutton.addEventListener('click', handleOnClickLogout);
+    document.getElementById('use-client-credentials-button')
+      .addEventListener('click', showClientCredentialFields);
+    document.getElementById('use-oidc-button')
+      .addEventListener('click', showOIDCFields);
+
 
     document.getElementById("email-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
     document.getElementById("password-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
@@ -99,6 +104,26 @@ function handleAfterLogin(success) {
         document.getElementById("login-status-fail").classList.remove('hidden');
         document.getElementById("login-status-success").classList.add('hidden');
     }
+}
+
+function showClientCredentialFields() {
+    loginMethod = 'client-credentials';
+    document.getElementById("email-container").classList.remove('hidden');
+    document.getElementById("password-container").classList.remove('hidden');
+    document.getElementById("use-oidc").classList.remove('hidden');
+    document.getElementById("use-oidc").classList.add('d-flex');
+    document.getElementById("use-client-credentials").classList.add('hidden');
+    document.getElementById("use-client-credentials").classList.remove('d-flex');
+}
+
+function showOIDCFields() {
+    loginMethod = 'oidc';
+    document.getElementById("email-container").classList.add('hidden');
+    document.getElementById("password-container").classList.add('hidden');
+    document.getElementById("use-oidc").classList.add('hidden');
+    document.getElementById("use-oidc").classList.remove('d-flex');
+    document.getElementById("use-client-credentials").classList.remove('hidden');
+    document.getElementById("use-client-credentials").classList.add('d-flex');
 }
 
 async function oidcLogin(oidcIssuer) {
