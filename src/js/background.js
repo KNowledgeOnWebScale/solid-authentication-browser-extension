@@ -1,18 +1,17 @@
 import {getAccessToken, getToken, getTokenUrl, sendHead} from "./solid.js";
 import {createDpopHeader} from '@inrupt/solid-client-authn-core';
-// import {buildAuthenticatedHeaders} from '@inrupt/solid-client-authn-browser';
 
-import {Session} from "@inrupt/solid-client-authn-browser";
+import {OIDCHandler} from "./oidc-handler";
 
 var id;
 var secret;
 var tokenUrl;
 
 var isChrome;
-const session = new Session();
-session.clientAuthentication.cleanUrlAfterRedirect = () => {};
-let tab;
-const pendingRequests = {};
+const oidcHandler = new OIDCHandler({
+    loggedInCallback: changeIcon,
+    loggedOutCallback: changeIcon
+});
 
 /**
  * Main function that is called upon extension (re)start
@@ -43,7 +42,7 @@ function main() {
     )
 
     chrome.webRequest.onBeforeSendHeaders.addListener(
-      checkForPendingRequests,
+      oidcHandler.checkForPendingRequests.bind(oidcHandler),
       {
           // urls: ["https://pod.playground.solidlab.be/*", "https://*.solidcommunity.net/*", "*.inrupt.com/*", "<all_urls>"]
           urls: ["<all_urls>"]
@@ -52,7 +51,7 @@ function main() {
     )
 
     chrome.webRequest.onBeforeRequest.addListener(
-      checkForOIDCRedirect,
+      oidcHandler.checkForOIDCRedirect.bind(oidcHandler),
       {
           urls: ["https://whateveryouwant-solid.com/*"]
       },
@@ -94,13 +93,12 @@ async function rewriteRequestHeadersUsingClientCredentials(details) {
 }
 
 async function rewriteRequestHeadersUsingOIDC(details) {
-    if (details.method === "POST" || details.method === 'HEAD') {
+    if (details.method !== 'GET') {
         console.log(`rewriteRequestHeadersUsingOIDC: ignore ${details.url} because ${details.method}`);
         return
     }
 
-    if (findHeader(details.requestHeaders, 'x-solid-extension') === 'sniff-headers') {
-        console.log(`rewriteRequestHeadersUsingOIDC: ignore ${details.url} because ${findHeader(details.requestHeaders, 'x-solid-extension')}`);
+    if (oidcHandler.ignoreRequest(details)) {
         return
     }
 
@@ -113,54 +111,22 @@ async function rewriteRequestHeadersUsingOIDC(details) {
 
     console.log(details.method);
     console.log(details.url);
-    console.log(session.info);
-    pendingRequests[details.url] = {
-        status: 'pending'
-    };
-    console.log(pendingRequests[details.url]);
-    try {
-        await session.fetch(details.url, {
-            headers: {
-                'x-solid-extension': 'sniff-headers'
-            }
-        });
-    } catch (e) {
-        // This error is expected, because the fetch is only done to get the headers.
-    }
-
-    console.log(pendingRequests[details.url]);
+    const {authorization, dpop} = await oidcHandler.getAuthHeaders(details);
 
     details.requestHeaders.push({
         name: "authorization",
-        value: findHeader(pendingRequests[details.url].headers, 'authorization')
+        value: authorization
     })
 
     details.requestHeaders.push({
         name: "dpop",
-        value: findHeader(pendingRequests[details.url].headers, 'dpop')
+        value: dpop
     })
 
     console.log(details.requestHeaders);
-    delete pendingRequests[details.url];
+    oidcHandler.deletePendingRequest(details.url);
 
     return {requestHeaders: details.requestHeaders}
-}
-
-async function checkForPendingRequests(details) {
-    if (findHeader(details.requestHeaders, 'x-solid-extension') === 'sniff-headers') {
-        pendingRequests[details.url].headers = details.requestHeaders;
-        pendingRequests[details.url].status = 'headers available';
-        console.log(details.requestHeaders);
-        return {cancel: true};
-    }
-}
-
-async function checkForOIDCRedirect(details) {
-    console.log('web request made', details.url);
-    session.handleIncomingRedirect(details.url).then(info => console.log('a', info));
-    console.log(session.info)
-    chrome.tabs.remove(tab.id);
-    return { cancel: true }
 }
 
 /**
@@ -189,18 +155,18 @@ async function handleMessage(message) {
         };
 
     } else if (message.msg === "logout") {
-
-        id = undefined;
-        secret = undefined;
-        tokenUrl = undefined;
+        //
+        // id = undefined;
+        // secret = undefined;
+        // tokenUrl = undefined;
 
         changeIcon(false);
-        removeClientCredentialsFromBrowserStorage();
-
+        // removeClientCredentialsFromBrowserStorage();
+        oidcHandler.logout();
     } else if (message.msg === "check-authenticated") {
         let authenticated = (id !== undefined && secret !== undefined && tokenUrl !== undefined);
         return {
-            authenticated: authenticated
+            authenticated: oidcHandler.isLoggedIn()
         };
     } else if (message.msg === "store-session-id") {
         console.log(message.id);
@@ -208,13 +174,7 @@ async function handleMessage(message) {
             oidcSessionID: message.id
         });
     } else if (message.msg === "login-with-oidc") {
-        session.login({
-            redirectUrl: 'https://whateveryouwant-solid.com/',
-            handleRedirect(url) {
-                tab = chrome.tabs.create({ url }, t => { tab = t });
-            },
-            oidcIssuer: message.oidcIssuer
-        });
+        oidcHandler.login(message.oidcIssuer);
     }
 }
 
@@ -295,24 +255,6 @@ function storeInBrowserStorage(item, callback) {
  */
 function removeFromBrowserStorage(item, callback) {
     chrome.storage.local.remove(item, callback);
-}
-
-function findHeader(requestHeaders, headerName) {
-    if (!requestHeaders) {
-        return null;
-    }
-
-    let i = 0;
-
-    while(i < requestHeaders.length && requestHeaders[i].name !== headerName) {
-        i ++;
-    }
-
-    if (i < requestHeaders.length) {
-        return requestHeaders[i].value;
-    }
-
-    return null;
 }
 
 main();
