@@ -144,20 +144,19 @@ async function handleMessage(message) {
     if (message.msg === "login-with-client-credentials") {
         handler = clientCredentialsHandler;
 
-        await handler.login({
+        const success = await handler.login({
             iodcIssuer: message.idp,
             email: message.email,
             password: message.password
         });
 
         return {
-            success: success
+            success
         };
 
     } else if (message.msg === "logout") {
         handler.logout();
     } else if (message.msg === "check-authenticated") {
-        let authenticated = (id !== undefined && secret !== undefined && tokenUrl !== undefined);
         return {
             authenticated: handler.isLoggedIn()
         };
