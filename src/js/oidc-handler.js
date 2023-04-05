@@ -81,7 +81,7 @@ export class OIDCHandler extends Handler {
   }
 
   async logout() {
-    if (this.isLoggedIn()) {
+    if (!this.isLoggedIn()) {
       return
     }
 
