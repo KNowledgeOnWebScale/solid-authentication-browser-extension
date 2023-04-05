@@ -1,8 +1,10 @@
 import {Session} from "@inrupt/solid-client-authn-browser";
+import {Handler} from "./handler";
 
-export class OIDCHandler {
+export class OIDCHandler extends Handler {
 
   constructor({loggedInCallback, loggedOutCallback}) {
+    super();
     this.pendingRequests = {};
     this._createNewSession();
     this.loggedInCallback = loggedInCallback;
@@ -67,7 +69,8 @@ export class OIDCHandler {
     }
   }
 
-  login(oidcIssuer) {
+  login(options) {
+    const {oidcIssuer} = options;
     return this.session.login({
       redirectUrl: 'https://whateveryouwant-solid.com/',
       handleRedirect: (url) => {
@@ -78,8 +81,13 @@ export class OIDCHandler {
   }
 
   async logout() {
+    if (this.isLoggedIn()) {
+      return
+    }
+
     await this.session.logout();
     this._createNewSession();
+    this.pendingRequests = {};
     if (this.loggedOutCallback) {
       this.loggedInCallback(false)
     }
@@ -94,7 +102,7 @@ export class OIDCHandler {
     this.session.clientAuthentication.cleanUrlAfterRedirect = () => {};
   }
 
-  deletePendingRequest(url) {
+  cleanUpRequest(url) {
     delete this.pendingRequests[url];
   }
 

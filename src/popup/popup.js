@@ -1,3 +1,5 @@
+let loginMethod = 'oidc' // or 'client-credentials'
+
 function main() {
 
     const $loginbutton = document.getElementById('login-button');
@@ -38,25 +40,27 @@ async function handleOnClickLogin() {
     document.getElementById("loader").classList.remove('hidden');
     document.getElementById("generate-button-text").classList.add('hidden');
 
-    let email = document.getElementById("email-input-form").value
-    let password = document.getElementById("password-input-form").value
-    let idp = document.getElementById("idp-input-form").value
 
+    let idp = document.getElementById("idp-input-form").value
     if (!idp.endsWith("/")) {
         idp = idp + "/"
     }
 
-    const result = await oidcLogin(idp);
-    console.log(result);
-    //
-    // chrome.runtime.sendMessage({
-    //     msg: "generate-id",
-    //     email,
-    //     password,
-    //     idp,
-    // }, function (response) {
-    //     handleAfterLogin(response.success)
-    // });
+    if (loginMethod === 'oidc') {
+        oidcLogin(idp);
+    } else {
+        let email = document.getElementById("email-input-form").value
+        let password = document.getElementById("password-input-form").value
+
+        chrome.runtime.sendMessage({
+            msg: "login-with-client-credentials",
+            email,
+            password,
+            idp,
+        }, function (response) {
+            handleAfterLogin(response.success)
+        });
+    }
 }
 
 /**
@@ -106,28 +110,6 @@ async function oidcLogin(oidcIssuer) {
         msg: "login-with-oidc",
         oidcIssuer
     });
-    //
-    // const storage = new PopupStorage();
-    // const session = new Session({
-    //     secureStorage: storage,
-    //     insecureStorage: storage
-    // });
-    //
-    // chrome.runtime.sendMessage({
-    //     msg: "store-session-id",
-    //     id: session.info.sessionId,
-    // });
-    //
-    // await session.login({
-    //     // Specify the URL of the user's Solid Identity Provider;
-    //     // e.g., "https://login.inrupt.com".
-    //     oidcIssuer,
-    //     // Specify the URL the Solid Identity Provider should redirect the user once logged in,
-    //     // e.g., the current page for a single-page app.
-    //     redirectUrl: 'https://whateveryouwant-solid.com/',
-    //     // Provide a name for the application when sending to the Solid Identity Provider
-    //     clientName: "My application"
-    // });
 }
 
 main();
