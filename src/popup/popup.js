@@ -1,3 +1,5 @@
+var enableRegex;
+
 function main() {
 
     const $loginbutton = document.getElementById('login-button');
@@ -11,6 +13,10 @@ function main() {
     document.getElementById("password-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
     document.getElementById("idp-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
     document.getElementById("domain-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
+
+    document.getElementById("enable-regex-button").addEventListener('click', handleOnClickRegex)
+
+    enableRegex = false;
 
     chrome.runtime.sendMessage({
         msg: "check-authenticated"
@@ -54,6 +60,7 @@ async function handleOnClickLogin() {
         password,
         idp,
         filter,
+        regex: enableRegex
     }, function (response) {
         handleAfterLogin(response.success)
     });
@@ -96,6 +103,18 @@ function handleAfterLogin(success) {
         document.getElementById("login-status-fail").classList.remove('hidden');
         document.getElementById("login-status-success").classList.add('hidden');
     }
+}
+
+function handleOnClickRegex() {
+    const $regexButton = document.getElementById("enable-regex-button")
+
+    if (enableRegex) {
+        $regexButton.classList.remove("active");
+    } else {
+        $regexButton.classList.add("active");
+    }
+
+    enableRegex = !enableRegex;
 }
 
 main();

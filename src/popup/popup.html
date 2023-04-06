@@ -45,15 +45,18 @@
                     </svg>
                 </span>
                 <input type="url" id="domain-input-form" class="form-control" placeholder="Domain filter (optional)" aria-label="Domain filter" aria-describedby="inputGroup-login-domain" tabindex="3">
+                <button type="button" class="btn btn-outline-secondary" id="enable-regex-button" data-bs-toggle="tooltip" title="Use RegEx syntax" tabindex="4">
+                    <img id="regex-icon" src="regex.png">
+                </button>
             </div>
         </div>
         <div class="d-flex justify-content-center mb-0">
             <div class="d-flex flex-column justify-content-center align-items-center">
-                <div class="btn btn-primary d-flex justify-content-center" id="login-button" tabindex="4">
+                <div class="btn btn-primary d-flex justify-content-center" id="login-button" tabindex="5">
                     <p id="generate-button-text">Log in</p>
                     <div class="loader hidden" id="loader"></div>
                 </div>
-                <div class="btn btn-primary d-flex justify-content-center d-none" id="logout-button" tabindex="5">
+                <div class="btn btn-primary d-flex justify-content-center d-none" id="logout-button" tabindex="6">
                     <p>Log out</p>
                 </div>
                 <p class="text text-center text-small text-danger hidden mt-1 mb-0" id="login-status-fail">

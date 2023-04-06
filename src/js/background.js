@@ -5,6 +5,7 @@ var id;
 var secret;
 var tokenUrl;
 var domainFilter;
+var enableRegex;
 
 var isChrome;
 
@@ -54,8 +55,15 @@ async function rewriteRequestHeaders(details) {
         return;
     }
 
-    if (domainFilter !== '' && !details.url.includes(domainFilter)) {
-        return;
+    if (domainFilter !== '') {
+        if (enableRegex) {
+            const re = new RegExp(domainFilter);
+            if (details.url.search(re) < 0) {
+                return;
+            }
+        } else if(!details.url.includes(domainFilter)) {
+            return;
+        }
     }
 
     const {accessToken, dpopKey} = await getAccessToken(id, secret, tokenUrl);
@@ -90,12 +98,13 @@ async function handleMessage(message) {
         secret = response.secret;
 
         domainFilter = message.filter;
+        enableRegex = message.regex;
 
         let success = (id !== undefined && secret !== undefined);
         changeIcon(success);
 
         if (success) {
-            storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter);
+            storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter, enableRegex);
         }
 
         return {
@@ -108,6 +117,7 @@ async function handleMessage(message) {
         secret = undefined;
         tokenUrl = undefined;
         domainFilter = undefined;
+        enableRegex = undefined;
 
         changeIcon(false);
         removeClientCredentialsFromBrowserStorage();
@@ -143,6 +153,7 @@ function getCredentialsFromBrowserStorage() {
             secret = result.solidCredentials.secret
             tokenUrl = result.solidCredentials.tokenUrl
             domainFilter = result.solidCredentials.domainFilter;
+            enableRegex = result.solidCredentials.enableRegex;
             changeIcon(true);
         } else {
             changeIcon(false);
@@ -155,14 +166,17 @@ function getCredentialsFromBrowserStorage() {
  * @param {String} id - Client ID
  * @param {String} secret - Client secret
  * @param {String} tokenUrl - Token url from which access tokens can be requested
+ * @param {String} domainFilter - Filter for domain to which requests require authentication
+ * @param {Boolean} enableRegex - Indicates whether domainFilter is regex syntax
  */
-function storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter) {
+function storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter, enableRegex) {
     storeInBrowserStorage({
         solidCredentials: {
             id: id,
             secret: secret,
             tokenUrl: tokenUrl,
-            domainFilter: domainFilter
+            domainFilter: domainFilter,
+            enableRegex: enableRegex
         }
     })
 }

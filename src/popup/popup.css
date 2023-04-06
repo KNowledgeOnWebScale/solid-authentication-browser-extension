@@ -19,6 +19,11 @@
     font-size: 12px;
 }
 
+#regex-icon {
+    max-height: 100%;
+    height: 22px;
+}
+
 .hidden {
     display: none;
 }
