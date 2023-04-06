@@ -18,8 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Update development instructions
 - Only authenticate requests that return 401 unauthorized (see [issue 10](https://github.com/KNowledgeOnWebScale/solid-authentication-browser-extension/issues/10))
 
-### Bug fixes
-- Fixed a bug that caused the popup to still show login options and throw an error after already being logged in
+### Fixed
+- Fix a bug that caused the popup to still show login options and throw an error after already being logged in
 
 ## 1.0.0 - 2023-03-17
 
