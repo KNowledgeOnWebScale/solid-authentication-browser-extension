@@ -1,5 +1,6 @@
-import {getAccessToken, getToken, getTokenUrl} from "./solid.js";
+import {getAccessToken, getToken, getTokenUrl, sendHead} from "./solid.js";
 import {createDpopHeader} from '@inrupt/solid-client-authn-core';
+
 
 var id;
 var secret;
@@ -46,9 +47,13 @@ function main() {
  */
 async function rewriteRequestHeaders(details) {
 
-    // TODO: find a more elegant way to catch the access token creation request called from getAccessToken()
-    if (details.method === "POST") {
-        return;
+    // TODO: find a more elegant way to catch the access token creation request or HEAD status code test request
+    if (details.method === "POST" || details.method === "HEAD") {
+        return
+    }
+
+    if (await sendHead(details.url) !== 401) {
+        return
     }
 
     if (id === undefined || secret === undefined || tokenUrl === undefined || domainFilter === undefined) {
@@ -89,8 +94,7 @@ async function rewriteRequestHeaders(details) {
  */
 async function handleMessage(message) {
     if (message.msg === "generate-id") {
-
-        let credentialsUrl = message.idp + "idp/credentials/";
+        const credentialsUrl = message.idp + "idp/credentials/";
         tokenUrl = await getTokenUrl(message.idp);
 
         const response = await getToken(message.email, message.password, credentialsUrl);
@@ -99,20 +103,24 @@ async function handleMessage(message) {
 
         domainFilter = message.filter;
         enableRegex = message.regex;
-
-        let success = (id !== undefined && secret !== undefined);
-        changeIcon(success);
-
-        if (success) {
+        
+        let success = true;
+        let error;
+        try {
+            const {id, secret} = await getToken(message.email, message.password, credentialsUrl);
             storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter, enableRegex);
+        } catch (e) {
+            success = false;
+            error = e.message;
         }
 
+        changeIcon(success);
+
         return {
-            success: success
+            success,
+            error
         };
-
     } else if (message.msg === "logout") {
-
         id = undefined;
         secret = undefined;
         tokenUrl = undefined;
@@ -121,11 +129,10 @@ async function handleMessage(message) {
 
         changeIcon(false);
         removeClientCredentialsFromBrowserStorage();
-
     } else if (message.msg === "check-authenticated") {
-        let authenticated = (id !== undefined && secret !== undefined && tokenUrl !== undefined);
+        const authenticated = (id !== undefined && secret !== undefined && tokenUrl !== undefined);
         return {
-            authenticated: authenticated
+            authenticated
         };
     }
 }
