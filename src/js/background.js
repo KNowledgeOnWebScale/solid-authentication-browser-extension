@@ -2,13 +2,13 @@ import {getAccessToken, getToken, getTokenUrl, sendHead} from "./solid.js";
 import {createDpopHeader} from '@inrupt/solid-client-authn-core';
 
 
-var id;
-var secret;
-var tokenUrl;
-var domainFilter;
-var enableRegex;
+let id;
+let secret;
+let tokenUrl;
+let domainFilter;
+let enableRegex;
 
-var isChrome;
+let isChrome;
 
 
 /**

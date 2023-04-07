@@ -1,4 +1,4 @@
-var enableRegex;
+let enableRegex;
 
 function main() {
 
