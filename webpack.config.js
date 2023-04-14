@@ -16,9 +16,6 @@ module.exports = {
         path: path.join(__dirname, '/dist'),
         filename: '[name].js',
     },
-    optimization: {
-        minimize: false
-    },
     resolve: {
         alias: stdLibBrowser
     },

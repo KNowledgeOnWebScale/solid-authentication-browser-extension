@@ -37,7 +37,7 @@ You can develop and test the by doing the following steps:
    ```
 2. Build the extension using webpack via
    ```shell
-   npm run build
+   npm run build:dev
    ```
    This places all the necessary bundled files in the newly created `dist` directory .
 3. Install the [Firefox Browser Developer Edition](https://www.mozilla.org/en-US/firefox/developer/).

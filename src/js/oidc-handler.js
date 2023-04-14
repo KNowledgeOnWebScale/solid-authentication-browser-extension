@@ -1,5 +1,7 @@
 import {Session} from "@inrupt/solid-client-authn-browser";
 import {Handler} from "./handler";
+import {sendHead} from "./solid";
+import {findHeader} from "./utils";
 
 export class OIDCHandler extends Handler {
 
@@ -12,13 +14,21 @@ export class OIDCHandler extends Handler {
   }
 
   ignoreRequest(details) {
-    if (this._findHeader(details.requestHeaders, 'x-solid-extension') === 'sniff-headers') {
-      console.log(`OIDCHandler: ignore ${details.url} because ${this._findHeader(details.requestHeaders, 'x-solid-extension')}`);
+    const {requestHeaders, url, requestId} = details;
+
+    if (findHeader(requestHeaders, 'x-solid-extension') === 'sniff-headers') {
+      console.debug(`OIDCHandler: ignore ${url} (${requestId}) because header 'x-solid-extension' with 'sniff-headers' is present.`);
       return true;
     }
 
+    if (findHeader(requestHeaders, 'authorization') || findHeader(requestHeaders, 'dpop')) {
+      console.debug(`OIDCHandler: ignore ${url} (${requestId}) because authorization and dpop headers are already present.`);
+      return true;
+    }
+
+
     if (!this.session.info.isLoggedIn) {
-      console.log(`OIDCHandler: ignore ${details.url} because not logged in`);
+      console.debug(`OIDCHandler: ignore ${url} (${requestId}) because not logged in.`);
       return true;
     }
 
@@ -26,30 +36,42 @@ export class OIDCHandler extends Handler {
   }
 
   async getAuthHeaders(details) {
-    this.pendingRequests[details.url] = {
+    const {url, method, requestId} = details;
+    this.pendingRequests[requestId] = {
       status: 'pending'
     };
-    console.log(this.pendingRequests[details.url]);
+
+    const statusCode = await sendHead(url);
+
+    if (method === 'GET' && statusCode !== 401) {
+      console.debug(`rewriteRequestHeadersUsingOIDC: ignore ${url} (${requestId}) because status ${statusCode} !== 401`);
+      this.pendingRequests[requestId].headers = [];
+      this.pendingRequests[requestId].status = 'headers available';
+      return {dpop: undefined, authorization: undefined};
+    }
+
     try {
-      await this.session.fetch(details.url, {
+      await this.session.fetch(url, {
+        method,
         headers: {
-          'x-solid-extension': 'sniff-headers'
+          'x-solid-extension': 'sniff-headers',
+          'x-solid-request-id': requestId
         }
       });
     } catch (e) {
       // This error is expected, because the fetch is only done to get the headers.
     }
 
-    console.log(this.pendingRequests[details.url]);
+    console.log(this.pendingRequests[requestId]);
 
     return {
-      authorization: this._findHeader(this.pendingRequests[details.url].headers, 'authorization'),
-      dpop: this._findHeader(this.pendingRequests[details.url].headers, 'dpop')
+      authorization: findHeader(this.pendingRequests[requestId].headers, 'authorization'),
+      dpop: findHeader(this.pendingRequests[requestId].headers, 'dpop')
     }
   }
 
   checkForOIDCRedirect(details) {
-    console.log('web request made', details.url);
+    console.log('OIDC redirect captured: ', details.url);
     this.session.handleIncomingRedirect(details.url).then(info => {
       console.log('a', info);
       if (this.session.info.isLoggedIn && this.loggedInCallback) {
@@ -57,14 +79,18 @@ export class OIDCHandler extends Handler {
       }
     });
     chrome.tabs.remove(this.tab.id);
+
     return { cancel: true }
   }
 
   checkForPendingRequests(details) {
-    if (this._findHeader(details.requestHeaders, 'x-solid-extension') === 'sniff-headers') {
-      this.pendingRequests[details.url].headers = details.requestHeaders;
-      this.pendingRequests[details.url].status = 'headers available';
-      console.log(details.requestHeaders);
+    const {requestHeaders} = details;
+
+    if (findHeader(requestHeaders, 'x-solid-extension') === 'sniff-headers') {
+      const requestId = findHeader(requestHeaders, 'x-solid-request-id');
+      this.pendingRequests[requestId].headers = requestHeaders;
+      this.pendingRequests[requestId].status = 'headers available';
+      console.log(requestHeaders);
       return {cancel: true};
     }
   }
@@ -113,25 +139,15 @@ export class OIDCHandler extends Handler {
     this.session.clientAuthentication.cleanUrlAfterRedirect = () => {};
   }
 
-  cleanUpRequest(url) {
-    delete this.pendingRequests[url];
+  cleanUpRequest(requestId) {
+    delete this.pendingRequests[requestId];
   }
 
-  _findHeader(requestHeaders, headerName) {
-    if (!requestHeaders) {
+  getUserName() {
+    if (!this.isLoggedIn()) {
       return null;
     }
 
-    let i = 0;
-
-    while(i < requestHeaders.length && requestHeaders[i].name !== headerName) {
-      i ++;
-    }
-
-    if (i < requestHeaders.length) {
-      return requestHeaders[i].value;
-    }
-
-    return null;
+    return this.session.info.webId;
   }
 }

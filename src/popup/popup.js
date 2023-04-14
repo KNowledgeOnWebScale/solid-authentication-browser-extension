@@ -23,7 +23,7 @@ function main() {
     }, function (response) {
         if (response.authenticated) {
             console.log(response);
-            handleAfterLogin(true);
+            handleAfterLogin(true, response.name);
         }
     });
 }
@@ -80,6 +80,8 @@ function handleOnClickLogout() {
     document.getElementById('logout-button').classList.add("d-none");
     document.getElementById("credential-input-forms").classList.remove('hidden');
     document.getElementById("login-status-success").classList.add('hidden');
+    document.getElementById("name").classList.add('hidden');
+    document.getElementById("use-client-credentials").classList.remove('hidden');
 
     document.getElementById("email-input-form").value = '';
     document.getElementById('password-input-form').value = '';
@@ -90,19 +92,27 @@ function handleOnClickLogout() {
  * Callback of attempted login in background process script
  * @param {Boolean} success - Boolean value indicated if the log in attempt was successful
  */
-function handleAfterLogin(success) {
+function handleAfterLogin(success, name) {
     document.getElementById("loader").classList.add('hidden');
     document.getElementById("generate-button-text").classList.remove('hidden');
 
     if (success) {
         document.getElementById("credential-input-forms").classList.add('hidden');
+        document.getElementById("use-client-credentials").classList.add('hidden');
         document.getElementById("login-status-success").classList.remove('hidden');
         document.getElementById("login-status-fail").classList.add('hidden');
         document.getElementById("login-button").classList.add("d-none");
         document.getElementById('logout-button').classList.remove("d-none");
+        if (name) {
+            document.getElementById("name").classList.remove('hidden');
+            document.getElementById("name").innerText = 'as ' + name;
+        }
     } else {
         document.getElementById("login-status-fail").classList.remove('hidden');
+        document.getElementById("use-client-credentials").classList.remove('hidden');
         document.getElementById("login-status-success").classList.add('hidden');
+        document.getElementById("name").classList.add('hidden');
+
     }
 }
 

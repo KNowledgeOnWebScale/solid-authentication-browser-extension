@@ -4,6 +4,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",
+    "build:dev": "webpack --config webpack.dev.config.js",
     "package": "cd dist && zip -r -FS ../solid-authentication.zip * --exclude '*.git*'"
   },
   "devDependencies": {
@@ -16,6 +17,9 @@
     "webpack-cli": "^5.0.1"
   },
   "author": "Axel Lorreyne",
+  "contributors": [
+    "Pieter Heyvaert (https://pieterheyvaert.com)"
+  ],
   "private": "true",
   "license": "MIT",
   "dependencies": {

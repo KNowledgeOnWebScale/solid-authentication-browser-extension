@@ -1,6 +1,6 @@
-import {sendHead} from "./solid.js";
 import {OIDCHandler} from "./oidc-handler";
 import {ClientCredentialsHandler} from "./client-credentials-handler";
+import {findHeader} from "./utils";
 
 const oidcHandler = new OIDCHandler({
     loggedInCallback: changeIcon,
@@ -69,8 +69,10 @@ async function main() {
  * @returns {Object} - Object containing altered request headers, to be handled by the web request listener callback
  */
 async function rewriteRequestHeadersForAuth(details) {
-    if (details.method !== 'GET') {
-        console.log(`rewriteRequestHeadersUsingOIDC: ignore ${details.url} because ${details.method}`);
+    const {url, requestId, method, requestHeaders} = details;
+
+    if (method !== 'GET' && method !== 'PUT') {
+        console.debug(`rewriteRequestHeadersUsingOIDC: ignore ${url} because ${method}`);
         return
     }
 
@@ -78,31 +80,40 @@ async function rewriteRequestHeadersForAuth(details) {
         return
     }
 
-    const statusCode = await sendHead(details.url);
-
-    if (statusCode !== 401) {
-        console.log(`rewriteRequestHeadersUsingOIDC: ignore ${details.url} because status ${statusCode} !== 401`);
-        return
-    }
-
-    console.log(details.method);
-    console.log(details.url);
+    console.debug(`Getting headers for request ID: ${requestId}`);
     const {authorization, dpop} = await handler.getAuthHeaders(details);
 
-    details.requestHeaders.push({
-        name: "authorization",
-        value: authorization
-    })
+    if (authorization && dpop) {
+        console.log(`Adding authorization and dpop headers for ${method} ${url} (${requestId}).`);
 
-    details.requestHeaders.push({
-        name: "dpop",
-        value: dpop
-    })
+        if (findHeader(requestHeaders, 'authorization')) {
+            console.error(`Already authorization header present for ${url} (${requestId}).`);
+            console.error(details);
+            return;
+        }
 
-    console.log(details.requestHeaders);
-    handler.cleanUpRequest(details.url);
+        if (findHeader(requestHeaders, 'dpop')) {
+            console.error(`Already dpop header present for ${url} (${requestId}).`);
+            console.error(details);
+            return;
+        }
 
-    return {requestHeaders: details.requestHeaders}
+        details.requestHeaders.push({
+            name: "authorization",
+            value: authorization
+        });
+
+        details.requestHeaders.push({
+            name: "dpop",
+            value: dpop
+        });
+
+        console.log(requestHeaders);
+    }
+
+    handler.cleanUpRequest(requestId);
+
+    return {requestHeaders}
 }
 
 /**
@@ -123,12 +134,12 @@ async function handleMessage(message) {
         return {
             success
         };
-
     } else if (message.msg === "logout") {
         handler.logout();
     } else if (message.msg === "check-authenticated") {
         return {
-            authenticated: handler.isLoggedIn()
+            authenticated: handler.isLoggedIn(),
+            name: handler.getUserName()
         };
     } else if (message.msg === "login-with-oidc") {
         setCurrentLoginMethod('oidc');
@@ -167,6 +178,10 @@ async function getCurrentLoginMethod() {
     });
 }
 
+/**
+ * Save login method to browser storage.
+ * @param loginMethod - The login method which is either "oidc" or "client-credentials".
+ */
 function setCurrentLoginMethod(loginMethod) {
     chrome.storage.local.set({loginMethod});
 }

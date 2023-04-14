@@ -26,4 +26,8 @@ export class Handler {
   cleanUpRequest(url) {
     // Implementing this method is not required.
   }
+
+  getUserName() {
+    return null;
+  }
 }
