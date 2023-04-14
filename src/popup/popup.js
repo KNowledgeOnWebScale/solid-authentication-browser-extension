@@ -43,8 +43,8 @@ function submitLoginOnKeyEnter(event) {
  */
 async function handleOnClickLogin() {
     document.getElementById("loader").classList.remove('hidden');
+    document.getElementById("idp-tab-message").classList.remove('hidden');
     document.getElementById("generate-button-text").classList.add('hidden');
-
 
     let idp = document.getElementById("idp-input-form").value
     if (!idp.endsWith("/")) {
@@ -94,6 +94,7 @@ function handleOnClickLogout() {
  */
 function handleAfterLogin(success, name) {
     document.getElementById("loader").classList.add('hidden');
+    document.getElementById("idp-tab-message").classList.add('hidden');
     document.getElementById("generate-button-text").classList.remove('hidden');
 
     if (success) {

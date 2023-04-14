@@ -41,3 +41,7 @@
 .text-small {
     font-size: small;
 }
+
+#idp-tab-message {
+    width: 350px;
+}
