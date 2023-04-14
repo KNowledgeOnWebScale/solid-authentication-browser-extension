@@ -26,7 +26,6 @@ export class OIDCHandler extends Handler {
       return true;
     }
 
-
     if (!this.session.info.isLoggedIn) {
       console.debug(`OIDCHandler: ignore ${url} (${requestId}) because not logged in.`);
       return true;

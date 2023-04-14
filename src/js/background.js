@@ -124,6 +124,7 @@ async function handleMessage(message) {
     if (message.msg === "login-with-client-credentials") {
         setCurrentLoginMethod('client-credentials');
         handler = clientCredentialsHandler;
+        setLatestIDP(message.idp);
 
         const success = await handler.login({
             oidcIssuer: message.idp,
@@ -136,13 +137,20 @@ async function handleMessage(message) {
         };
     } else if (message.msg === "logout") {
         handler.logout();
+
+        return {
+            latestIDP: await getLatestIDP()
+        };
     } else if (message.msg === "check-authenticated") {
+        console.log(await getLatestIDP());
         return {
             authenticated: handler.isLoggedIn(),
-            name: handler.getUserName()
+            name: handler.getUserName(),
+            latestIDP: await getLatestIDP()
         };
     } else if (message.msg === "login-with-oidc") {
         setCurrentLoginMethod('oidc');
+        setLatestIDP(message.oidcIssuer);
         handler.login({oidcIssuer: message.oidcIssuer});
     }
 }
@@ -184,6 +192,18 @@ async function getCurrentLoginMethod() {
  */
 function setCurrentLoginMethod(loginMethod) {
     chrome.storage.local.set({loginMethod});
+}
+
+function setLatestIDP(latestIDP) {
+    chrome.storage.local.set({latestIDP});
+}
+
+async function getLatestIDP() {
+    return new Promise(resolve => {
+        chrome.storage.local.get('latestIDP', result => {
+            resolve(result.latestIDP);
+        });
+    });
 }
 
 main();

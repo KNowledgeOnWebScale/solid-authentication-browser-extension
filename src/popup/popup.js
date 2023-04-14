@@ -24,6 +24,8 @@ function main() {
         if (response.authenticated) {
             console.log(response);
             handleAfterLogin(true, response.name);
+        } else if (response.latestIDP) {
+            document.getElementById('idp-input-form').value = response.latestIDP;
         }
     });
 }
@@ -74,7 +76,9 @@ async function handleOnClickLogin() {
 function handleOnClickLogout() {
     chrome.runtime.sendMessage({
         msg: "logout"
-    })
+    }, response => {
+        document.getElementById('idp-input-form').value = response.latestIDP;
+    });
 
     document.getElementById("login-button").classList.remove("d-none");
     document.getElementById('logout-button').classList.add("d-none");
