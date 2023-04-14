@@ -80,7 +80,7 @@ async function rewriteRequestHeadersForAuth(details) {
         return
     }
 
-    console.debug(`Getting headers for request ID: ${requestId}`);
+    console.debug(`Getting headers for ${method} ${url} (${requestId}).`);
     const {authorization, dpop} = await handler.getAuthHeaders(details);
 
     if (authorization && dpop) {
