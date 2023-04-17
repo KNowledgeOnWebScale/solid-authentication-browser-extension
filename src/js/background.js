@@ -158,6 +158,8 @@ async function handleMessage(message) {
         handler.loadHistoryFromStorage();
         setLatestIDP(message.oidcIssuer);
         handler.login({oidcIssuer: message.oidcIssuer});
+    } else if (message.msg === "show-history") {
+        chrome.tabs.create({ url: '/history/index.html' });
     }
 }
 

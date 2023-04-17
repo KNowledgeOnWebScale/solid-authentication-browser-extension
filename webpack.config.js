@@ -10,7 +10,7 @@ const webpack = require('webpack');
 module.exports = {
     entry: {
         background: './src/js/background.js',
-        popup: './src/popup/popup.js',
+        popup: './src/popup/popup.js'
     },
     output: {
         path: path.join(__dirname, '/dist'),
@@ -30,6 +30,11 @@ module.exports = {
                 {
                     context: 'src/',
                     from: 'popup'
+                },
+                {
+                    context: 'src',
+                    from: 'history',
+                    to: 'history'
                 },
                 {
                     context: 'src/',

@@ -18,6 +18,13 @@ function main() {
     document.getElementById("password-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
     document.getElementById("idp-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
 
+    const $showHistoryButton = document.getElementById('show-history-button');
+    $showHistoryButton.addEventListener('click', () => {
+        chrome.runtime.sendMessage({
+            msg: "show-history"
+        });
+    });
+
     chrome.runtime.sendMessage({
         msg: "check-authenticated"
     }, function (response) {
@@ -86,6 +93,7 @@ function handleOnClickLogout() {
     document.getElementById("login-status-success").classList.add('hidden');
     document.getElementById("name").classList.add('hidden');
     document.getElementById("use-client-credentials").classList.remove('hidden');
+    document.getElementById("use-client-credentials").classList.remove('d-none');
 
     document.getElementById("email-input-form").value = '';
     document.getElementById('password-input-form').value = '';
@@ -104,6 +112,7 @@ function handleAfterLogin(success, name) {
     if (success) {
         document.getElementById("credential-input-forms").classList.add('hidden');
         document.getElementById("use-client-credentials").classList.add('hidden');
+        document.getElementById("use-client-credentials").classList.add("d-none");
         document.getElementById("login-status-success").classList.remove('hidden');
         document.getElementById("login-status-fail").classList.add('hidden');
         document.getElementById("login-button").classList.add("d-none");
@@ -115,6 +124,7 @@ function handleAfterLogin(success, name) {
     } else {
         document.getElementById("login-status-fail").classList.remove('hidden');
         document.getElementById("use-client-credentials").classList.remove('hidden');
+        document.getElementById("use-client-credentials").classList.remove("d-none");
         document.getElementById("login-status-success").classList.add('hidden');
         document.getElementById("name").classList.add('hidden');
 
