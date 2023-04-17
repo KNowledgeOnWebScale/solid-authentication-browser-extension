@@ -1,4 +1,36 @@
 export class Handler {
+  HISTORY_LIMIT = 1000;
+
+  constructor() {
+    this.history = [];
+  }
+
+  async saveRequestToHistory(details) {
+      if (this.history.length === this.HISTORY_LIMIT) {
+        this.history.shift();
+      }
+
+      let {method, url, date} = details;
+
+      if (!date) {
+        date = new Date();
+      }
+
+      this.history.push({method, url, date});
+
+      chrome.storage.local.set({history: this.history});
+  }
+
+  getHistory() {
+    return this.history;
+  }
+
+  async loadHistoryFromStorage() {
+      this.history = (await this._getHistoryFromStorage()) || [];
+      console.debug(this.history);
+      console.debug(`Handler: loaded history from storage (${this.history.length} requests).`);
+  }
+
   ignoreRequest(details) {
     throw new Error("You must implement the method ignoreRequest.");
   }
@@ -29,5 +61,15 @@ export class Handler {
 
   getUserName() {
     return null;
+  }
+
+  async _getHistoryFromStorage() {
+    return new Promise(resolve => {
+      chrome.storage.local.get('history', result => {
+        let {history} = result;
+        console.debug(history);
+        resolve(history);
+      });
+    });
   }
 }

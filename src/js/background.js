@@ -19,8 +19,10 @@ let handler;
 async function main() {
     if (await getCurrentLoginMethod() === 'oidc') {
         handler = oidcHandler;
+        handler.loadHistoryFromStorage();
     } else {
         handler = clientCredentialsHandler;
+        handler.loadHistoryFromStorage();
     }
 
     handler.restore();
@@ -109,6 +111,7 @@ async function rewriteRequestHeadersForAuth(details) {
         });
 
         console.log(requestHeaders);
+        handler.saveRequestToHistory(details);
     }
 
     handler.cleanUpRequest(requestId);
@@ -124,6 +127,7 @@ async function handleMessage(message) {
     if (message.msg === "login-with-client-credentials") {
         setCurrentLoginMethod('client-credentials');
         handler = clientCredentialsHandler;
+        handler.loadHistoryFromStorage();
         setLatestIDP(message.idp);
 
         const success = await handler.login({
@@ -150,6 +154,8 @@ async function handleMessage(message) {
         };
     } else if (message.msg === "login-with-oidc") {
         setCurrentLoginMethod('oidc');
+        handler = oidcHandler;
+        handler.loadHistoryFromStorage();
         setLatestIDP(message.oidcIssuer);
         handler.login({oidcIssuer: message.oidcIssuer});
     }
