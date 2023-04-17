@@ -10,13 +10,13 @@ export class Handler {
         this.history.shift();
       }
 
-      let {method, url, date} = details;
+      let {method, url, date, webId} = details;
 
       if (!date) {
         date = new Date();
       }
 
-      this.history.push({method, url, date});
+      this.history.push({method, url, date, webId});
 
       chrome.storage.local.set({history: this.history});
   }
