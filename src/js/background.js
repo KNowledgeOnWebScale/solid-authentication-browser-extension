@@ -66,7 +66,7 @@ async function rewriteRequestHeaders(details) {
             if (details.url.search(re) < 0) {
                 return;
             }
-        } else if(!details.url.includes(domainFilter)) {
+        } else if (!details.url.includes(domainFilter)) {
             return;
         }
     }
@@ -93,47 +93,64 @@ async function rewriteRequestHeaders(details) {
  * @param {Object} message - Message object that contains various parameters, specific to the message's purpose
  */
 async function handleMessage(message) {
-    if (message.msg === "generate-id") {
-        const credentialsUrl = message.idp + "idp/credentials/";
-        tokenUrl = await getTokenUrl(message.idp);
+    switch (message.msg) {
 
-        const response = await getToken(message.email, message.password, credentialsUrl);
-        id = response.id;
-        secret = response.secret;
+        case "generate-id":
+            const credentialsUrl = message.idp + "idp/credentials/";
+            tokenUrl = await getTokenUrl(message.idp);
 
-        domainFilter = message.filter;
-        enableRegex = message.regex;
-        
-        let success = true;
-        let error;
-        try {
-            const {id, secret} = await getToken(message.email, message.password, credentialsUrl);
+            const response = await getToken(message.email, message.password, credentialsUrl);
+            id = response.id;
+            secret = response.secret;
+
+            domainFilter = message.filter;
+            enableRegex = message.regex;
+
+            let success = true;
+            let error;
+            try {
+                const {id, secret} = await getToken(message.email, message.password, credentialsUrl);
+                storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter, enableRegex);
+            } catch (e) {
+                success = false;
+                error = e.message;
+            }
+
+            changeIcon(success);
+
+            return {
+                success,
+                error
+            };
+
+        case "logout":
+            id = undefined;
+            secret = undefined;
+            tokenUrl = undefined;
+            domainFilter = undefined;
+            enableRegex = undefined;
+
+            changeIcon(false);
+            removeClientCredentialsFromBrowserStorage();
+            return;
+
+        case "check-authenticated":
+            const authenticated = (id !== undefined && secret !== undefined && tokenUrl !== undefined);
+            return {
+                authenticated
+            };
+
+        case "get-filter":
+            return {
+                domainFilter,
+                enableRegex
+            }
+
+        case "update-filter":
+            domainFilter = message.filter;
+            enableRegex = message.regex;
             storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter, enableRegex);
-        } catch (e) {
-            success = false;
-            error = e.message;
-        }
-
-        changeIcon(success);
-
-        return {
-            success,
-            error
-        };
-    } else if (message.msg === "logout") {
-        id = undefined;
-        secret = undefined;
-        tokenUrl = undefined;
-        domainFilter = undefined;
-        enableRegex = undefined;
-
-        changeIcon(false);
-        removeClientCredentialsFromBrowserStorage();
-    } else if (message.msg === "check-authenticated") {
-        const authenticated = (id !== undefined && secret !== undefined && tokenUrl !== undefined);
-        return {
-            authenticated
-        };
+            return;
     }
 }
 
