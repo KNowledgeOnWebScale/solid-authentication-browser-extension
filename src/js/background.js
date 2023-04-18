@@ -160,6 +160,8 @@ async function handleMessage(message) {
         handler.login({oidcIssuer: message.oidcIssuer});
     } else if (message.msg === "show-history") {
         chrome.tabs.create({ url: '/history/index.html' });
+    } else if (message.msg === "clear-history") {
+        handler.clearHistory();
     }
 }
 

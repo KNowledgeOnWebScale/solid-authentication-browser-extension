@@ -31,6 +31,14 @@ export class Handler {
       console.debug(`Handler: loaded history from storage (${this.history.length} requests).`);
   }
 
+  /**
+   * This method clears the request history.
+   */
+  clearHistory() {
+    this.history = [];
+    chrome.storage.local.set({history: this.history});
+  }
+
   ignoreRequest(details) {
     throw new Error("You must implement the method ignoreRequest.");
   }
