@@ -146,10 +146,11 @@ async function handleMessage(message) {
             latestIDP: await getLatestIDP()
         };
     } else if (message.msg === "check-authenticated") {
-        console.log(await getLatestIDP());
+        console.debug(await getLatestIDP());
         return {
             authenticated: handler.isLoggedIn(),
             name: handler.getUserName(),
+            webId: handler.getWebID(),
             latestIDP: await getLatestIDP()
         };
     } else if (message.msg === "login-with-oidc") {

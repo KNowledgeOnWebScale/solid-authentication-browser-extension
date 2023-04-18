@@ -71,6 +71,14 @@ export class Handler {
     return null;
   }
 
+  /**
+   * Returns the WebID of the logged-in agent.
+   * @returns {null}
+   */
+  getWebID() {
+    return null;
+  }
+
   async _getHistoryFromStorage() {
     return new Promise(resolve => {
       chrome.storage.local.get('history', result => {

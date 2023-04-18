@@ -150,6 +150,14 @@ export class OIDCHandler extends Handler {
     return this.session.info.webId;
   }
 
+  getWebID() {
+    if (!this.isLoggedIn()) {
+      return null;
+    }
+
+    return this.session.info.webId;
+  }
+
   async saveRequestToHistory(details) {
     details.webId = this.session.info.webId;
     await super.saveRequestToHistory(details);
