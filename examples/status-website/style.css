@@ -1,0 +1,14 @@
+body {
+    margin: 50px;
+    font-family: Verdana,sans-serif;
+}
+
+#error {
+    color: firebrick;
+    margin-top: 20px;
+}
+
+.hidden {
+    display: none;
+    visibility: hidden;
+}

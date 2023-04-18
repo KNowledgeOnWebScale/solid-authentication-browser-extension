@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Extension status website</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div>
+  This page shows the status of the Solid Authentication browser extension.<br/>
+  The values below change automatically when you log in or out with the extension.
+</div>
+
+<div id="error" class="hidden">
+    <code>window.solid</code> is undefined. Did you install the extension?
+</div>
+<div>
+  <ul>
+    <li>Logged in: <span id="logged-in"></span></li>
+    <li>WebID: <span id=webId></span></li>
+  </ul>
+</div>
+
+<script type="application/javascript" src="script.js"></script>
+</body>
+</html>
