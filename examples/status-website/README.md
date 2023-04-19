@@ -51,3 +51,11 @@ window.solid.getStatus(status => {
 ### `onStatusChange(callback)`
 This method registers a callback that is called everytime the status changes.
 It passes the same **stringified** object as for `getStatus` to the callback.
+In the page script you do something like:
+
+```javascript
+window.solid.onStatusChange(status => {
+  status = JSON.parse(status);
+  console.log(status);
+  });
+```
