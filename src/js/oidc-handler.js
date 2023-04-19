@@ -74,7 +74,7 @@ export class OIDCHandler extends Handler {
     this.session.handleIncomingRedirect(details.url).then(info => {
       console.log('a', info);
       if (this.session.info.isLoggedIn && this.loggedInCallback) {
-        this.loggedInCallback(true);
+        this.loggedInCallback();
       }
     });
     chrome.tabs.remove(this.tab.id);
@@ -108,6 +108,7 @@ export class OIDCHandler extends Handler {
 
   async logout() {
     if (!this.isLoggedIn()) {
+      console.debug('Not logging out because not logged in.');
       return
     }
 
@@ -115,7 +116,7 @@ export class OIDCHandler extends Handler {
     this._createNewSession();
     this.pendingRequests = {};
     if (this.loggedOutCallback) {
-      this.loggedInCallback(false)
+      this.loggedOutCallback()
     }
   }
 
@@ -128,7 +129,7 @@ export class OIDCHandler extends Handler {
     if (this.isLoggedIn() && this.loggedInCallback) {
       this.loggedInCallback(true);
     } else if (this.loggedOutCallback) {
-      this.loggedOutCallback(false);
+      this.loggedOutCallback();
       console.log('OIDCHandler: no session restored.');
     }
   }

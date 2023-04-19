@@ -3,12 +3,12 @@ import {ClientCredentialsHandler} from "./client-credentials-handler";
 import {findHeader} from "./utils";
 
 const oidcHandler = new OIDCHandler({
-    loggedInCallback: changeIcon,
-    loggedOutCallback: changeIcon
+    loggedInCallback: onLoggedIn,
+    loggedOutCallback: onLoggedOut
 });
 const clientCredentialsHandler = new ClientCredentialsHandler({
-    loggedInCallback: changeIcon,
-    loggedOutCallback: changeIcon
+    loggedInCallback: onLoggedIn,
+    loggedOutCallback: onLoggedOut
 });
 
 let handler;
@@ -19,12 +19,11 @@ let handler;
 async function main() {
     if (await getCurrentLoginMethod() === 'oidc') {
         handler = oidcHandler;
-        handler.loadHistoryFromStorage();
     } else {
         handler = clientCredentialsHandler;
-        handler.loadHistoryFromStorage();
     }
 
+    handler.loadHistoryFromStorage();
     handler.restore();
 
     /**
@@ -177,6 +176,44 @@ function changeIcon(success) {
             "48": iconPath
         }
     });
+}
+
+/**
+ * Callback for the handlers after logging in.
+ */
+function onLoggedIn() {
+    changeIcon(true);
+    sendMessageToTabs({
+        msg: "change-status",
+        authenticated: true,
+        webId: handler.getWebID(),
+        name: handler.getUserName()
+    });
+}
+
+/**
+ * Callback for the handlers after logging out.
+ */
+function onLoggedOut() {
+    console.log('Log out');
+    changeIcon(false);
+    sendMessageToTabs({
+        msg: "change-status",
+        authenticated: false
+    });
+}
+
+async function sendMessageToTabs(message) {
+    const tabs = await browser.tabs.query({});
+    if (!tabs) {
+        console.warn('tabs is undefined. No message was sent.');
+        return;
+    }
+    for (const tab of tabs) {
+        browser.tabs
+          .sendMessage(tab.id, message)
+          .catch(err => {}); // Ignore errors for now.
+    }
 }
 
 /**
