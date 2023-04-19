@@ -17,7 +17,10 @@ of the browser extension installed.
 ## How it works
 
 The extension adds the property `solid` to `window` which the script of a Web page can access.
-This property has the method `getStatus(callback)` that gets the status from the extension
+This property has two methods: `getStatus(callback)` and `onStatusChange(callback)`.
+
+### `getStatus(callback)`
+This method gets the status from the extension
 and passes it **stringified** to the provided callback.
 The status is an object that looks like when you are logged in:
 
@@ -44,3 +47,7 @@ window.solid.getStatus(status => {
   console.log(status);
 });
 ```
+
+### `onStatusChange(callback)`
+This method registers a callback that is called everytime the status changes.
+It passes the same **stringified** object as for `getStatus` to the callback.
