@@ -1,21 +1,32 @@
 # Solid Authentication Extension
 
 This FireFox extension replaces unauthenticated requests with authenticated Solid requests.
-This extension only works with WebIDs that use 
-the [Community Solid Server](https://github.com/CommunitySolidServer/CommunitySolidServer) (>= v4.0.0)
-as identity provider.
+You are able to log in with [OIDC](#oidc) or
+[Client Credentials](#client-credentials).
+
+You can create a Solid pod for testing via the [SolidLab Playground](https://pod.playground.solidlab.be/).
+
+## OIDC
+
+You are able to log in with [OIDC](https://solidproject.org/TR/oidc) 
+via the following steps:
+
+1. Install the extension.
+2. Click on the Solid icon in the toolbar and a popup will open.
+3. Provide your identity provider in the corresponding field.
+4. Click on the "Log in" button and new a tab will open.
+5. Log in to your identity provider in the new tab.
+6. The tab will close once you are logged in.
+7. Your requests are now authenticated.
 
 ## Client Credentials
 
-Requests are authenticated using the 
-[Client Credentials API](https://communitysolidserver.github.io/CommunitySolidServer/5.x/usage/client-credentials/).
-You need at least v4.0.0 of the Community Solid Server for this to work.
+You can only use [Client Credentials](https://communitysolidserver.github.io/CommunitySolidServer/5.x/usage/client-credentials/)
+if your identify provider is the [Community Solid Server](https://github.com/CommunitySolidServer/CommunitySolidServer) (>= v4.0.0).
 
 The extension uses temporary access tokens that are created using either 
 the client's email and password used on the server or 
 a previously created id and secret linked to the user's WebID on the server.
-
-You can create a Solid pod for testing via the [SolidLab Playground](https://pod.playground.solidlab.be/).
 
 ## Development environment
 
@@ -78,8 +89,9 @@ You find more information about how to add an extension to FireFox from a file
 
 ## Session
 
-The extension will remember your credentials (ID & Secret combination) in your browser storage.
+The following only applies to Client Credentials.
 
+The extension will remember your credentials (ID & Secret combination) in your browser storage.
 This will allow the extension to restore and reuse your previously generated id and secret after you press 
 `reload`  in the aforementioned debugging menu until you log out manually.
 
@@ -90,10 +102,10 @@ Because of this,
 if you remove and reload the extension or restart your browser and reload the extension, 
 the extension won't find it's previously saved credentials in the browser storage and you will have to log in again.
 
-## GET requests only
+## GET and PUT requests only
 
-At this time, the extension will only add authentication to GET requests.
-POST requests will not be blocked, but won't have any authentication either.
+At this time, the extension will only add authentication to GET and PUT requests.
+POST and HEAD requests will not be blocked, but won't have any authentication either.
 
 This is because, the (blocking) web request listener that catches any outgoing request from the browser user,
 will catch any outgoing requests from the extension background script as well,
