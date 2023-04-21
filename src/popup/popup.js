@@ -1,7 +1,8 @@
+const QueryEngine = require('@comunica/query-sparql').QueryEngine;
+
 let loginMethod = 'oidc' // or 'client-credentials'
-
+let idpOrWebID = 'idp'; // or 'webid';
 function main() {
-
     const $loginbutton = document.getElementById('login-button');
     $loginbutton.addEventListener('click', handleOnClickLogin);
     $loginbutton.addEventListener('keypress', submitLoginOnKeyEnter)
@@ -13,10 +14,14 @@ function main() {
     document.getElementById('use-oidc-button')
       .addEventListener('click', showOIDCFields);
 
-
     document.getElementById("email-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
     document.getElementById("password-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
     document.getElementById("idp-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
+    document.getElementById("webid-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
+
+    // IDP WebID switch
+    const radios = document.querySelectorAll('input[type=radio][name="idp-webid-switch"]');
+    radios.forEach(radio => radio.addEventListener('change', () => handleSwitch(radio.value)));
 
     const $showHistoryButton = document.getElementById('show-history-button');
     $showHistoryButton.addEventListener('click', () => {
@@ -33,6 +38,10 @@ function main() {
             handleAfterLogin(true, response.name);
         } else if (response.latestIDP) {
             document.getElementById('idp-input-form').value = response.latestIDP;
+
+            if (response.latestWebID) {
+                document.getElementById('webid-input-form').value = response.latestWebID;
+            }
         }
     });
 }
@@ -55,13 +64,38 @@ async function handleOnClickLogin() {
     document.getElementById("idp-tab-message").classList.remove('hidden');
     document.getElementById("generate-button-text").classList.add('hidden');
 
-    let idp = document.getElementById("idp-input-form").value
+    let idp;
+    let webId;
+
+    if (idpOrWebID === 'webid') {
+        webId = document.getElementById("webid-input-form").value;
+        const idps = await getIDPsFromWebID(webId);
+        if (idps.length === 0) {
+            console.error('No IDP found in WebID.');
+            // TODO show error;
+            return
+        }
+
+        if (idps.length === 1) {
+            idp = idps[0];
+            console.debug('Only 1 IDP found in WebID:', idp);
+        } else {
+            // More than 1 IDP.
+            // TODO: Ask user to select one.
+            // At the moment we take the first one.
+            idp = idps[0];
+            console.warm('More than 1 IDP found in WebID. Using ', idp);
+        }
+    } else {
+        idp = document.getElementById("idp-input-form").value;
+    }
+
     if (!idp.endsWith("/")) {
         idp = idp + "/"
     }
 
     if (loginMethod === 'oidc') {
-        oidcLogin(idp);
+        oidcLogin(idp, webId);
     } else {
         let email = document.getElementById("email-input-form").value
         let password = document.getElementById("password-input-form").value
@@ -85,6 +119,10 @@ function handleOnClickLogout() {
         msg: "logout"
     }, response => {
         document.getElementById('idp-input-form').value = response.latestIDP;
+
+        if (response.latestWebID) {
+            document.getElementById('webid-input-form').value = response.latestWebID;
+        }
     });
 
     document.getElementById("login-button").classList.remove("d-none");
@@ -98,6 +136,7 @@ function handleOnClickLogout() {
     document.getElementById("email-input-form").value = '';
     document.getElementById('password-input-form').value = '';
     document.getElementById('idp-input-form').value = '';
+    document.getElementById('idp-webid-switch').classList.remove("hidden");
 }
 
 /**
@@ -117,6 +156,7 @@ function handleAfterLogin(success, name) {
         document.getElementById("login-status-fail").classList.add('hidden');
         document.getElementById("login-button").classList.add("d-none");
         document.getElementById('logout-button').classList.remove("d-none");
+        document.getElementById('idp-webid-switch').classList.add("hidden");
         if (name) {
             document.getElementById("name").classList.remove('hidden');
             document.getElementById("name").innerText = 'as ' + name;
@@ -127,7 +167,7 @@ function handleAfterLogin(success, name) {
         document.getElementById("use-client-credentials").classList.remove("d-none");
         document.getElementById("login-status-success").classList.add('hidden');
         document.getElementById("name").classList.add('hidden');
-
+        document.getElementById('idp-webid-switch"').classList.remove("hidden");
     }
 }
 
@@ -139,6 +179,7 @@ function showClientCredentialFields() {
     document.getElementById("use-oidc").classList.add('d-flex');
     document.getElementById("use-client-credentials").classList.add('hidden');
     document.getElementById("use-client-credentials").classList.remove('d-flex');
+    document.getElementById('idp-webid-switch"').classList.remove("hidden");
 }
 
 function showOIDCFields() {
@@ -149,17 +190,44 @@ function showOIDCFields() {
     document.getElementById("use-oidc").classList.remove('d-flex');
     document.getElementById("use-client-credentials").classList.remove('hidden');
     document.getElementById("use-client-credentials").classList.add('d-flex');
+    document.getElementById('idp-webid-switch"').classList.remove("hidden");
 }
 
-async function oidcLogin(oidcIssuer) {
+async function oidcLogin(oidcIssuer, webId) {
     if (!oidcIssuer) {
         return;
     }
 
     await chrome.runtime.sendMessage({
         msg: "login-with-oidc",
-        oidcIssuer
+        oidcIssuer,
+        webId
     });
+}
+
+function handleSwitch(currentValue) {
+    idpOrWebID = currentValue;
+
+    if (currentValue === 'idp') {
+        document.getElementById('idp-container').classList.remove('hidden');
+        document.getElementById('webid-container').classList.add('hidden');
+    } else if (currentValue === 'webid') {
+        document.getElementById('idp-container').classList.add('hidden');
+        document.getElementById('webid-container').classList.remove('hidden');
+    }
+}
+
+async function getIDPsFromWebID(webId) {
+    const myEngine = new QueryEngine();
+    const bindingsStream = await myEngine.queryBindings(`
+  SELECT ?idp WHERE {
+    <${webId}> <http://www.w3.org/ns/solid/terms#oidcIssuer> ?idp
+  } LIMIT 10`, {
+        sources: [webId],
+    });
+
+    const bindings = await bindingsStream.toArray();
+    return bindings.map(a => a.get('idp').value);
 }
 
 main();

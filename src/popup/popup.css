@@ -50,3 +50,13 @@
 #idp-tab-message {
     width: 350px;
 }
+
+#idp-webid-switch-idp:checked, #idp-webid-switch-webid:checked {
+    background-color: #7c4dff;
+    border-color: #683de3;
+}
+
+#idp-webid-switch-idp:focus, #idp-webid-switch-webid:focus  {
+    box-shadow: 0 0 0 0.25rem rgba(124,77,255,.25);
+    border-color: #683de3;
+}

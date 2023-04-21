@@ -23,6 +23,7 @@
   "private": "true",
   "license": "MIT",
   "dependencies": {
+    "@comunica/query-sparql": "^2.6.9",
     "@inrupt/solid-client-authn-browser": "1.12.2",
     "@inrupt/solid-client-authn-node": "^1.14.0"
   }

@@ -142,7 +142,8 @@ async function handleMessage(message) {
         handler.logout();
 
         return {
-            latestIDP: await getLatestIDP()
+            latestIDP: await getLatestIDP(),
+            latestWebID: await getLatestWebID()
         };
     } else if (message.msg === "check-authenticated") {
         console.debug(await getLatestIDP());
@@ -150,13 +151,17 @@ async function handleMessage(message) {
             authenticated: handler.isLoggedIn(),
             name: handler.getUserName(),
             webId: handler.getWebID(),
-            latestIDP: await getLatestIDP()
+            latestIDP: await getLatestIDP(),
+            latestWebID: await getLatestWebID()
         };
     } else if (message.msg === "login-with-oidc") {
         setCurrentLoginMethod('oidc');
         handler = oidcHandler;
         handler.loadHistoryFromStorage();
         setLatestIDP(message.oidcIssuer);
+        if (message.webId) {
+            setLatestWebID(message.webId);
+        }
         handler.login({oidcIssuer: message.oidcIssuer});
     } else if (message.msg === "show-history") {
         chrome.tabs.create({ url: '/history/index.html' });
@@ -250,6 +255,18 @@ async function getLatestIDP() {
     return new Promise(resolve => {
         chrome.storage.local.get('latestIDP', result => {
             resolve(result.latestIDP);
+        });
+    });
+}
+
+function setLatestWebID(latestWebID) {
+    chrome.storage.local.set({latestWebID});
+}
+
+async function getLatestWebID() {
+    return new Promise(resolve => {
+        chrome.storage.local.get('latestWebID', result => {
+            resolve(result.latestWebID);
         });
     });
 }
