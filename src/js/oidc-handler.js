@@ -15,7 +15,7 @@ export class OIDCHandler extends Handler {
     this.loggedOutCallback = loggedOutCallback;
     this.lastKnownIsLoggedIn = false;
 
-    // Check every minute if isLoggedIn has changed.
+    // Check periodically if isLoggedIn has changed.
     setInterval(() => {
       if (this.session.info.isLoggedIn !== this.lastKnownIsLoggedIn) {
         console.debug(`OIDCHandler - setInterval: last-known isLoggedIn (${this.lastKnownIsLoggedIn}) is different from actual isLoggedIn (${this.session.info.isLoggedIn}).`);
