@@ -3,6 +3,8 @@ import {Handler} from "./handler";
 import {sendHead} from "./solid";
 import {findHeader} from "./utils";
 
+const CHECK_IS_LOGGED_IN_INTERNAL = 15*1000; // 15 seconds.
+
 export class OIDCHandler extends Handler {
 
   constructor({loggedInCallback, loggedOutCallback}) {
@@ -11,10 +13,39 @@ export class OIDCHandler extends Handler {
     this._createNewSession();
     this.loggedInCallback = loggedInCallback;
     this.loggedOutCallback = loggedOutCallback;
+    this.lastKnownIsLoggedIn = false;
+
+    // Check every minute if isLoggedIn has changed.
+    setInterval(() => {
+      if (this.session.info.isLoggedIn !== this.lastKnownIsLoggedIn) {
+        console.debug(`OIDCHandler - setInterval: last-known isLoggedIn (${this.lastKnownIsLoggedIn}) is different from actual isLoggedIn (${this.session.info.isLoggedIn}).`);
+        this.lastKnownIsLoggedIn = this.session.info.isLoggedIn;
+
+        if (this.lastKnownIsLoggedIn && this.loggedInCallback) {
+          this.loggedInCallback();
+        } else if (!this.lastKnownIsLoggedIn && this.loggedOutCallback) {
+          this.loggedOutCallback();
+        }
+      } else {
+        console.debug(`OIDCHandler - setInterval: last-known isLoggedIn is the same as actual isLoggedIn (${this.session.info.isLoggedIn}).`);
+      }
+    }, CHECK_IS_LOGGED_IN_INTERNAL);
   }
 
   ignoreRequest(details) {
     const {requestHeaders, url, requestId} = details;
+
+    if (url.indexOf('google.com') !== -1) {
+      // TODO: temporary until we have domain filtering.
+      console.debug(`OIDCHandler: ignore ${url} (${requestId}) because contains google.com.`);
+      return true;
+    }
+
+    if (url.indexOf('microsoft.com') !== -1) {
+      // TODO: temporary until we have domain filtering.
+      console.debug(`OIDCHandler: ignore ${url} (${requestId}) because contains microsoft.com.`);
+      return true;
+    }
 
     if (findHeader(requestHeaders, 'x-solid-extension') === 'sniff-headers') {
       console.debug(`OIDCHandler: ignore ${url} (${requestId}) because header 'x-solid-extension' with 'sniff-headers' is present.`);
@@ -26,7 +57,7 @@ export class OIDCHandler extends Handler {
       return true;
     }
 
-    if (!this.session.info.isLoggedIn) {
+    if (!this.isLoggedIn()) {
       console.debug(`OIDCHandler: ignore ${url} (${requestId}) because not logged in.`);
       return true;
     }
@@ -73,7 +104,7 @@ export class OIDCHandler extends Handler {
     console.log('OIDC redirect captured: ', details.url);
     this.session.handleIncomingRedirect(details.url).then(info => {
       console.log('a', info);
-      if (this.session.info.isLoggedIn && this.loggedInCallback) {
+      if (this.isLoggedIn() && this.loggedInCallback) {
         this.loggedInCallback();
       }
     });
@@ -121,7 +152,8 @@ export class OIDCHandler extends Handler {
   }
 
   isLoggedIn() {
-    return this.session.info.isLoggedIn;
+    this.lastKnownIsLoggedIn = this.session.info.isLoggedIn;
+    return this.lastKnownIsLoggedIn;
   }
 
   restore() {
