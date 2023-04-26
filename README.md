@@ -128,3 +128,8 @@ You find a screencast of the extension [here](https://cloud.ilabt.imec.be/index.
 | ESS | ESS      | Yes    |                                                      |
 | NSS | NSS      | No     | Something weird with status codes received from NSS. |
 | NSS | CSS      | Yes    |                                                      |
+
+## License
+
+This code is copyrighted by [Ghent University – imec](http://idlab.ugent.be/) and 
+released under the [MIT license](http://opensource.org/licenses/MIT).
