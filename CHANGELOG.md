@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fix a bug that caused the popup to still show login options and throw an error after already being logged in
+- Fix a bug that caused the status of the enable regex button te be out of sync after login when reopening the popup
 
 ## 1.0.0 - 2023-03-17
 

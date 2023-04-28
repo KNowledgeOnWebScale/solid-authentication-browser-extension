@@ -139,6 +139,8 @@ function handleAfterLoginAttempt(options) {
             document.getElementById("domain-input-form").value = response.domainFilter;
             const $regexButton = document.getElementById("enable-regex-button")
 
+            enableRegex = response.enableRegex
+
             if (response.enableRegex) {
                 $regexButton.classList.add("active");
             } else {
