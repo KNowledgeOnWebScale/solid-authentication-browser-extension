@@ -93,6 +93,9 @@ function handleOnClickLogout() {
     document.getElementById('password-input-form').value = '';
     document.getElementById('idp-input-form').value = '';
     document.getElementById('domain-input-form').value = '';
+    document.getElementById("enable-regex-button").classList.remove("active");
+
+    enableRegex = false;
 }
 
 /**
