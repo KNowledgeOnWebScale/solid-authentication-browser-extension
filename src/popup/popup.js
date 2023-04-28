@@ -37,13 +37,17 @@ function submitLoginOnKeyEnter(event) {
  * Handle user's request to log in
  */
 async function handleOnClickLogin() {
-    document.getElementById("loader").classList.remove('hidden');
-    document.getElementById("generate-button-text").classList.add('hidden');
-    document.getElementById("login-status-fail").classList.add('hidden');
-
     let email = document.getElementById("email-input-form").value
     let password = document.getElementById("password-input-form").value
     let idp = document.getElementById("idp-input-form").value
+
+    if (!(email && password && idp)) {
+        return;
+    }
+
+    document.getElementById("loader").classList.remove('hidden');
+    document.getElementById("generate-button-text").classList.add('hidden');
+    document.getElementById("login-status-fail").classList.add('hidden');
 
     if (!idp.endsWith("/")) {
         idp = idp + "/"
