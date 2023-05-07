@@ -87,7 +87,9 @@ async function handleMessage(message) {
         let success = true;
         let error;
         try {
-            const {id, secret} = await getToken(message.email, message.password, credentialsUrl);
+            let credentials = await getToken(message.email, message.password, credentialsUrl);
+            id = credentials.id;
+            secret = credentials.secret;
             storeCredentialsInBrowserStorage(id, secret, tokenUrl);
         } catch (e) {
             success = false;
