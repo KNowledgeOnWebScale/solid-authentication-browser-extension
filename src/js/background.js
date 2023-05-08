@@ -62,8 +62,9 @@ async function rewriteRequestHeaders(details) {
 
     if (domainFilter !== '') {
         if (enableRegex) {
-            const re = new RegExp(domainFilter);
-            if (details.url.search(re) < 0) {
+            const regexp = new RegExp(domainFilter);
+            const fullMatch = details.url.match(regexp).includes(details.url);
+            if (!fullMatch) {
                 return;
             }
         } else if (!details.url.includes(domainFilter)) {
