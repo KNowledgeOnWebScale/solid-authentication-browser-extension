@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fix a bug that caused the popup to still show login options and throw an error after already being logged in
+- Fix a bug that causes log in to always fail with correct credentials until extension is reloaded (see [issue 42](https://github.com/KNowledgeOnWebScale/solid-authentication-browser-extension/issues/42))
 
 ## 1.0.0 - 2023-03-17
 
