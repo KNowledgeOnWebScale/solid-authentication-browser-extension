@@ -36,7 +36,14 @@ function submitLoginOnKeyEnter(event) {
 /**
  * Handle user's request to log in
  */
-async function handleOnClickLogin() {
+async function handleOnClickLogin(event) {
+    event.preventDefault();
+
+    let $form = document.getElementById("credential-input-forms");
+    if (!$form.checkValidity()) {
+        $form.reportValidity();
+    }
+
     let email = document.getElementById("email-input-form").value
     let password = document.getElementById("password-input-form").value
     let idp = document.getElementById("idp-input-form").value
@@ -72,7 +79,7 @@ function handleOnClickLogout() {
     })
 
     document.getElementById("login-button").classList.remove("d-none");
-    document.getElementById('logout-button').classList.add("d-none");
+    document.getElementById('logout-button-div').classList.add("d-none");
     document.getElementById("credential-input-forms").classList.remove('hidden');
     document.getElementById("login-status-success").classList.add('hidden');
 
@@ -96,11 +103,11 @@ function handleAfterLoginAttempt(options) {
         document.getElementById("login-status-success").classList.remove('hidden');
         document.getElementById("login-status-fail").classList.add('hidden');
         document.getElementById("login-button").classList.add("d-none");
-        document.getElementById('logout-button').classList.remove("d-none");
+        document.getElementById('logout-button-div').classList.remove("d-none");
     } else {
         document.getElementById('login-fail-error').innerText = error + '.';
         document.getElementById("login-status-fail").classList.remove('hidden');
-        document.getElementById("login-status-success").classList.add('hidden');
+        document.getElementById("login-status-success").classList.add('hiddenF');
     }
 }
 

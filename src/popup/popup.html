@@ -44,15 +44,17 @@
                         <p id="generate-button-text">Log in</p>
                         <div class="loader hidden" id="loader"></div>
                     </button>
-                    <div class="btn btn-primary d-flex justify-content-center d-none" id="logout-button" tabindex="5">
-                        <p>Log out</p>
-                    </div>
                     <p class="text text-center text-small text-danger hidden mt-1 mb-0" id="login-status-fail">
                         Logging in failed: <span id="login-fail-error"></span>
                     </p>
                 </div>
             </div>
         </form>
+        <div id="logout-button-div" class="d-flex justify-content-center mb-0 d-none">
+            <div class="btn btn-primary d-flex justify-content-center" id="logout-button" tabindex="5">
+                <p>Log out</p>
+            </div>
+        </div>
     </div>
     <script type="text/javascript" src="popup.js"></script>
 </body>
