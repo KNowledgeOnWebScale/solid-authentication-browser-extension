@@ -39,7 +39,7 @@ function submitLoginOnKeyEnter(event) {
 async function handleOnClickLogin(event) {
     event.preventDefault();
 
-    let $form = document.getElementById("credential-input-forms");
+    const $form = document.getElementById("credential-input-forms");
     if (!$form.checkValidity()) {
         $form.reportValidity();
     }
