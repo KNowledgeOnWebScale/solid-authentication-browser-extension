@@ -46,15 +46,26 @@ function submitLoginOnKeyEnter(event) {
 /**
  * Handle user's request to log in
  */
-async function handleOnClickLogin() {
-    document.getElementById("login-loader").classList.remove('hidden');
-    document.getElementById("generate-button-text").classList.add('hidden');
-    document.getElementById("login-status-fail").classList.add('hidden');
+async function handleOnClickLogin(event) {
+    event.preventDefault();
+
+    const $form = document.getElementById("credential-input-forms");
+    if (!$form.checkValidity()) {
+        $form.reportValidity();
+    }
 
     let email = document.getElementById("email-input-form").value
     let password = document.getElementById("password-input-form").value
     let idp = document.getElementById("idp-input-form").value
     let filter = document.getElementById("domain-input-form").value
+
+    if (!(email && password && idp)) {
+        return;
+    }
+
+    document.getElementById("login-loader").classList.remove('hidden');
+    document.getElementById("generate-button-text").classList.add('hidden');
+    document.getElementById("login-status-fail").classList.add('hidden');
 
     if (!idp.endsWith("/")) {
         idp = idp + "/"
@@ -133,7 +144,7 @@ function handleAfterLoginAttempt(options) {
         document.getElementById("login-status-success").classList.remove('hidden');
         document.getElementById("login-status-fail").classList.add('hidden');
         document.getElementById("login-button").classList.add("d-none");
-        document.getElementById('logout-button').classList.remove("d-none");
+        document.getElementById('logout-button-div').classList.remove("d-none");
         document.getElementById("update-filter-button").classList.remove("d-none");
 
         chrome.runtime.sendMessage({
