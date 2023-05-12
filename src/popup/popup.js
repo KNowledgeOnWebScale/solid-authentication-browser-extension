@@ -104,7 +104,7 @@ function handleOnClickLogout() {
     document.getElementById('password-input-form').value = '';
     document.getElementById('idp-input-form').value = '';
     document.getElementById('domain-input-form').value = '';
-    document.getElementById("enable-regex-button").classList.remove("active");
+    document.getElementById("enable-regex-button").classList.remove("toggled");
 
     enableRegex = false;
 }
@@ -156,9 +156,9 @@ function handleAfterLoginAttempt(options) {
             enableRegex = response.enableRegex
 
             if (response.enableRegex) {
-                $regexButton.classList.add("active");
+                $regexButton.classList.add("toggled");
             } else {
-                $regexButton.classList.remove("active");
+                $regexButton.classList.remove("toggled");
             }
         });
     } else {
@@ -174,9 +174,9 @@ function handleAfterLoginAttempt(options) {
 function handleOnClickRegex() {
     const $regexButton = document.getElementById("enable-regex-button")
     if (enableRegex) {
-        $regexButton.classList.remove("active");
+        $regexButton.classList.remove("toggled");
     } else {
-        $regexButton.classList.add("active");
+        $regexButton.classList.add("toggled");
     }
     enableRegex = !enableRegex;
 }
