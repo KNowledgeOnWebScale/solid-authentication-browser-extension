@@ -92,7 +92,7 @@ function handleOnClickLogout() {
     })
 
     document.getElementById("login-button").classList.remove("d-none");
-    document.getElementById('logout-button').classList.add("d-none");
+    document.getElementById('logout-button-div').classList.add("d-none");
     document.getElementById("update-filter-button").classList.add("d-none");
     document.getElementById("login-status-success").classList.add('hidden');
 
