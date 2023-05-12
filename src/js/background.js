@@ -2,11 +2,13 @@ import {getAccessToken, getToken, getTokenUrl, sendHead} from "./solid.js";
 import {createDpopHeader} from '@inrupt/solid-client-authn-core';
 
 
-var id;
-var secret;
-var tokenUrl;
+let id;
+let secret;
+let tokenUrl;
+let domainFilter;
+let enableRegex;
 
-var isChrome;
+let isChrome;
 
 
 /**
@@ -54,8 +56,20 @@ async function rewriteRequestHeaders(details) {
         return
     }
 
-    if (id === undefined || secret === undefined || tokenUrl === undefined) {
-        return
+    if (id === undefined || secret === undefined || tokenUrl === undefined || domainFilter === undefined) {
+        return;
+    }
+
+    if (domainFilter !== '') {
+        if (enableRegex) {
+            const regexp = new RegExp(domainFilter);
+            const fullMatch = details.url.match(regexp).includes(details.url);
+            if (!fullMatch) {
+                return;
+            }
+        } else if (!details.url.includes(domainFilter)) {
+            return;
+        }
     }
 
     const {accessToken, dpopKey} = await getAccessToken(id, secret, tokenUrl);
@@ -65,14 +79,14 @@ async function rewriteRequestHeaders(details) {
     details.requestHeaders.push({
         name: "authorization",
         value: "DPoP " + accessToken
-    })
+    });
 
     details.requestHeaders.push({
         name: "dpop",
         value: dpopHeader
-    })
+    });
 
-    return {requestHeaders: details.requestHeaders}
+    return {requestHeaders: details.requestHeaders};
 }
 
 /**
@@ -80,40 +94,66 @@ async function rewriteRequestHeaders(details) {
  * @param {Object} message - Message object that contains various parameters, specific to the message's purpose
  */
 async function handleMessage(message) {
-    if (message.msg === "generate-id") {
-        const credentialsUrl = message.idp + "idp/credentials/";
-        tokenUrl = await getTokenUrl(message.idp);
+    switch (message.msg) {
 
-        let success = true;
-        let error;
-        try {
-            let credentials = await getToken(message.email, message.password, credentialsUrl);
-            id = credentials.id;
-            secret = credentials.secret;
-            storeCredentialsInBrowserStorage(id, secret, tokenUrl);
-        } catch (e) {
-            success = false;
-            error = e.message;
-        }
+        case "generate-id":
+            const credentialsUrl = message.idp + "idp/credentials/";
+            tokenUrl = await getTokenUrl(message.idp);
 
-        changeIcon(success);
+            const response = await getToken(message.email, message.password, credentialsUrl);
+            id = response.id;
+            secret = response.secret;
 
-        return {
-            success,
-            error
-        };
-    } else if (message.msg === "logout") {
-        id = undefined;
-        secret = undefined;
-        tokenUrl = undefined;
+            domainFilter = message.filter;
+            enableRegex = message.regex;
 
-        changeIcon(false);
-        removeClientCredentialsFromBrowserStorage();
-    } else if (message.msg === "check-authenticated") {
-        const authenticated = (id !== undefined && secret !== undefined && tokenUrl !== undefined);
-        return {
-            authenticated
-        };
+            let success = true;
+            let error;
+            try {
+                const credentials = await getToken(message.email, message.password, credentialsUrl);
+                id = credentials.id;
+                secret = credentials.secret;
+                storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter, enableRegex);
+            } catch (e) {
+                success = false;
+                error = e.message;
+            }
+
+            changeIcon(success);
+
+            return {
+                success,
+                error
+            };
+
+        case "logout":
+            id = undefined;
+            secret = undefined;
+            tokenUrl = undefined;
+            domainFilter = undefined;
+            enableRegex = undefined;
+
+            changeIcon(false);
+            removeClientCredentialsFromBrowserStorage();
+            return;
+
+        case "check-authenticated":
+            const authenticated = (id !== undefined && secret !== undefined && tokenUrl !== undefined);
+            return {
+                authenticated
+            };
+
+        case "get-filter":
+            return {
+                domainFilter,
+                enableRegex
+            }
+
+        case "update-filter":
+            domainFilter = message.filter;
+            enableRegex = message.regex;
+            storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter, enableRegex);
+            return;
     }
 }
 
@@ -139,6 +179,8 @@ function getCredentialsFromBrowserStorage() {
             id = result.solidCredentials.id
             secret = result.solidCredentials.secret
             tokenUrl = result.solidCredentials.tokenUrl
+            domainFilter = result.solidCredentials.domainFilter;
+            enableRegex = result.solidCredentials.enableRegex;
             changeIcon(true);
         } else {
             changeIcon(false);
@@ -151,13 +193,17 @@ function getCredentialsFromBrowserStorage() {
  * @param {String} id - Client ID
  * @param {String} secret - Client secret
  * @param {String} tokenUrl - Token url from which access tokens can be requested
+ * @param {String} domainFilter - Filter for domain to which requests require authentication
+ * @param {Boolean} enableRegex - Indicates whether domainFilter is regex syntax
  */
-function storeCredentialsInBrowserStorage(id, secret, tokenUrl) {
+function storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter, enableRegex) {
     storeInBrowserStorage({
         solidCredentials: {
             id: id,
             secret: secret,
-            tokenUrl: tokenUrl
+            tokenUrl: tokenUrl,
+            domainFilter: domainFilter,
+            enableRegex: enableRegex
         }
     })
 }
