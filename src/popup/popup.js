@@ -2,6 +2,7 @@ const QueryEngine = require('@comunica/query-sparql').QueryEngine;
 
 let loginMethod = 'oidc' // or 'client-credentials'
 let idpOrWebID = 'idp'; // or 'webid';
+
 function main() {
     const $loginbutton = document.getElementById('login-button');
     $loginbutton.addEventListener('click', handleOnClickLogin);
@@ -13,6 +14,9 @@ function main() {
       .addEventListener('click', showClientCredentialFields);
     document.getElementById('use-oidc-button')
       .addEventListener('click', showOIDCFields);
+
+    // const $updatebutton = document.getElementById("update-filter-button");
+    // $updatebutton.addEventListener('click', handleOnClickUpdateFilter);
 
     document.getElementById("email-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
     document.getElementById("password-input-form").addEventListener("keypress", submitLoginOnKeyEnter);
@@ -90,8 +94,12 @@ async function handleOnClickLogin() {
         idp = document.getElementById("idp-input-form").value;
     }
 
+    if (!idp.startsWith("https://") || idp.startsWith("http://")) {
+        idp = `https://${idp}`;
+    }
+
     if (!idp.endsWith("/")) {
-        idp = idp + "/"
+        idp = `${idp}/`;
     }
 
     if (loginMethod === 'oidc') {
@@ -126,12 +134,16 @@ function handleOnClickLogout() {
     });
 
     document.getElementById("login-button").classList.remove("d-none");
-    document.getElementById('logout-button').classList.add("d-none");
-    document.getElementById("credential-input-forms").classList.remove('hidden');
+    document.getElementById('logout-button-div').classList.add("d-none");
+    document.getElementById("update-filter-button").classList.add("d-none");
     document.getElementById("login-status-success").classList.add('hidden');
     document.getElementById("name").classList.add('hidden');
     document.getElementById("use-client-credentials").classList.remove('hidden');
     document.getElementById("use-client-credentials").classList.remove('d-none');
+
+    document.getElementById("email-input-div").classList.remove('hidden');
+    document.getElementById("password-input-div").classList.remove('hidden');
+    document.getElementById("idp-input-div").classList.remove('hidden');
 
     document.getElementById("email-input-form").value = '';
     document.getElementById('password-input-form').value = '';
@@ -140,8 +152,25 @@ function handleOnClickLogout() {
 }
 
 /**
+ * Handle user's request to update domain filter
+ */
+// function handleOnClickUpdateFilter() {
+//     document.getElementById("update-loader").classList.remove('hidden');
+//     document.getElementById("update-button-text").classList.add('hidden');
+//     let filter = document.getElementById("domain-input-form").value
+//     chrome.runtime.sendMessage({
+//         msg: "update-filter",
+//         filter,
+//         regex: enableRegex
+//     }, function () {
+//         document.getElementById("update-loader").classList.add('hidden');
+//         document.getElementById("update-button-text").classList.remove('hidden');
+//     });
+// }
+
+/**
  * Callback of attempted login in background process script
- * @param {Boolean} success - Boolean value indicated if the log in attempt was successful
+ * @param {success:Boolean, error: Error} options - The result of the login attempt
  */
 function handleAfterLogin(success, name) {
     document.getElementById("loader").classList.add('hidden');
@@ -162,6 +191,7 @@ function handleAfterLogin(success, name) {
             document.getElementById("name").innerText = 'as ' + name;
         }
     } else {
+        document.getElementById('login-fail-error').innerText = error + '.';
         document.getElementById("login-status-fail").classList.remove('hidden');
         document.getElementById("use-client-credentials").classList.remove('hidden');
         document.getElementById("use-client-credentials").classList.remove("d-none");
@@ -207,8 +237,10 @@ async function oidcLogin(oidcIssuer, webId) {
 
 function handleSwitch(currentValue) {
     idpOrWebID = currentValue;
+    console.log(currentValue);
 
     if (currentValue === 'idp') {
+        console.log(currentValue);
         document.getElementById('idp-container').classList.remove('hidden');
         document.getElementById('webid-container').classList.add('hidden');
     } else if (currentValue === 'webid') {

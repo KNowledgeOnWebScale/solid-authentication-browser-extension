@@ -10,11 +10,25 @@ import {createDpopHeader, generateDpopKeyPair} from '@inrupt/solid-client-authn-
  * @returns {(String, String)} - Tuple containing user id and secret linked to the users WebID
  */
 export async function getToken(email, password, credentialsUrl) {
-    const response = await fetch(credentialsUrl, {
-        method: 'POST',
-        headers: {'content-type': 'application/json'},
-        body: JSON.stringify({email: email, password: password, name: 'extension-token'}),
-    });
+    const invalidIDPMessage = 'IDP is invalid';
+    let response;
+
+    try {
+        response = await fetch(credentialsUrl, {
+            method: 'POST',
+            headers: {'content-type': 'application/json'},
+            body: JSON.stringify({email: email, password: password, name: 'extension-token'}),
+        });
+    } catch (e) {
+        throw new Error(invalidIDPMessage);
+    }
+
+    if (response.status === 500) {
+        const error = await response.json();
+        throw new Error(error.message);
+    } else if (!response.ok) {
+        throw new Error(invalidIDPMessage);
+    }
 
     const {id, secret} = await response.json();
     return {id, secret}

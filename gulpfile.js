@@ -2,7 +2,7 @@ const { watch } = require('gulp');
 const { exec } = require('child_process');
 
 function rebuild(done) {
-  exec('webpack', (error, stdout, stderr) => {
+  exec('webpack --config webpack.dev.config.js', (error, stdout, stderr) => {
     if (error) {
       console.error(error);
       return;
