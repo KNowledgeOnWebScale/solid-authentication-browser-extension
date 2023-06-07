@@ -32,6 +32,19 @@
     box-shadow: 0 0 0 0.2rem #7c4dff;
 }
 
+#update-filter-button {
+    background-color: #7c4dff;
+    border-color: #7c4dff;
+    box-shadow: #7c4dff;
+    height: 40px;
+    width: 80px;
+}
+
+.form-control:focus {
+    border-color: #7c4dff;
+    box-shadow: 0 0 0 0.2rem #7c4dff;
+}
+
 #invalid-cred-text {
     color: red;
     font-size: 12px;
