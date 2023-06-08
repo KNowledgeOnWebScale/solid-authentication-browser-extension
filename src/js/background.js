@@ -1,24 +1,30 @@
-import {getAccessToken, getToken, getTokenUrl, sendHead} from "./solid.js";
-import {createDpopHeader} from '@inrupt/solid-client-authn-core';
+import {OIDCHandler} from "./oidc-handler";
+import {ClientCredentialsHandler} from "./client-credentials-handler";
+import {findHeader} from "./utils";
 
+const oidcHandler = new OIDCHandler({
+    loggedInCallback: onLoggedIn,
+    loggedOutCallback: onLoggedOut
+});
+const clientCredentialsHandler = new ClientCredentialsHandler({
+    loggedInCallback: onLoggedIn,
+    loggedOutCallback: onLoggedOut
+});
 
-let id;
-let secret;
-let tokenUrl;
-let domainFilter;
-let enableRegex;
-
-let isChrome;
-
+let handler;
 
 /**
  * Main function that is called upon extension (re)start
  */
-function main() {
+async function main() {
+    if (await getCurrentLoginMethod() === 'oidc') {
+        handler = oidcHandler;
+    } else {
+        handler = clientCredentialsHandler;
+    }
 
-    isChrome = (navigator.userAgent.toLowerCase().includes("chrome"));
-
-    getCredentialsFromBrowserStorage();
+    handler.loadHistoryFromStorage();
+    handler.restore();
 
     /**
      * Runtime message listener, capable of handling and properly awaiting asynchronous functions
@@ -32,11 +38,29 @@ function main() {
      * Blocking web request listener that blocks a web request until the alteration of its request headers is completed
      */
     chrome.webRequest.onBeforeSendHeaders.addListener(
-        rewriteRequestHeaders,
+        rewriteRequestHeadersForAuth,
         {
+            // urls: ["https://pod.playground.solidlab.be/*", "https://*.solidcommunity.net/*", "*.inrupt.com/*", "<all_urls>"]
             urls: ["<all_urls>"]
         },
         ["blocking", "requestHeaders"]
+    )
+
+    chrome.webRequest.onBeforeSendHeaders.addListener(
+      oidcHandler.checkForPendingRequests.bind(oidcHandler),
+      {
+          // urls: ["https://pod.playground.solidlab.be/*", "https://*.solidcommunity.net/*", "*.inrupt.com/*", "<all_urls>"]
+          urls: ["<all_urls>"]
+      },
+      ["blocking", "requestHeaders"]
+    )
+
+    chrome.webRequest.onBeforeRequest.addListener(
+      oidcHandler.checkForOIDCRedirect.bind(oidcHandler),
+      {
+          urls: ["https://whateveryouwant-solid.com/*"]
+      },
+      ["blocking", "requestBody"]
     )
 }
 
@@ -45,48 +69,53 @@ function main() {
  * @param {Object} details - Request details passed on from blocking web request listener
  * @returns {Object} - Object containing altered request headers, to be handled by the web request listener callback
  */
-async function rewriteRequestHeaders(details) {
+async function rewriteRequestHeadersForAuth(details) {
+    const {url, requestId, method, requestHeaders} = details;
 
-    // TODO: find a more elegant way to catch the access token creation request or HEAD status code test request
-    if (details.method === "POST" || details.method === "HEAD") {
+    if (method !== 'GET' && method !== 'PUT') {
+        console.debug(`rewriteRequestHeadersUsingOIDC: ignore ${url} because ${method}`);
         return
     }
 
-    if (await sendHead(details.url) !== 401) {
+    if (handler.ignoreRequest(details)) {
         return
     }
 
-    if (id === undefined || secret === undefined || tokenUrl === undefined || domainFilter === undefined) {
-        return;
-    }
+    console.debug(`Getting headers for ${method} ${url} (${requestId}).`);
+    const {authorization, dpop} = await handler.getAuthHeaders(details);
 
-    if (domainFilter !== '') {
-        if (enableRegex) {
-            const regexp = new RegExp(domainFilter);
-            const fullMatch = details.url.match(regexp).includes(details.url);
-            if (!fullMatch) {
-                return;
-            }
-        } else if (!details.url.includes(domainFilter)) {
+    if (authorization && dpop) {
+        console.log(`Adding authorization and dpop headers for ${method} ${url} (${requestId}).`);
+
+        if (findHeader(requestHeaders, 'authorization')) {
+            console.error(`Already authorization header present for ${url} (${requestId}).`);
+            console.error(details);
             return;
         }
+
+        if (findHeader(requestHeaders, 'dpop')) {
+            console.error(`Already dpop header present for ${url} (${requestId}).`);
+            console.error(details);
+            return;
+        }
+
+        details.requestHeaders.push({
+            name: "authorization",
+            value: authorization
+        });
+
+        details.requestHeaders.push({
+            name: "dpop",
+            value: dpop
+        });
+
+        console.log(requestHeaders);
+        handler.saveRequestToHistory(details);
     }
 
-    const {accessToken, dpopKey} = await getAccessToken(id, secret, tokenUrl);
+    handler.cleanUpRequest(requestId);
 
-    const dpopHeader = await createDpopHeader(details.url, "GET", dpopKey);
-
-    details.requestHeaders.push({
-        name: "authorization",
-        value: "DPoP " + accessToken
-    });
-
-    details.requestHeaders.push({
-        name: "dpop",
-        value: dpopHeader
-    });
-
-    return {requestHeaders: details.requestHeaders};
+    return {requestHeaders}
 }
 
 /**
@@ -94,66 +123,50 @@ async function rewriteRequestHeaders(details) {
  * @param {Object} message - Message object that contains various parameters, specific to the message's purpose
  */
 async function handleMessage(message) {
-    switch (message.msg) {
+    if (message.msg === "login-with-client-credentials") {
+        setCurrentLoginMethod('client-credentials');
+        handler = clientCredentialsHandler;
+        handler.loadHistoryFromStorage();
+        setLatestIDP(message.idp);
 
-        case "generate-id":
-            const credentialsUrl = message.idp + "idp/credentials/";
-            tokenUrl = await getTokenUrl(message.idp);
+        const success = await handler.login({
+            oidcIssuer: message.idp,
+            email: message.email,
+            password: message.password
+        });
 
-            const response = await getToken(message.email, message.password, credentialsUrl);
-            id = response.id;
-            secret = response.secret;
+        return {
+            success
+        };
+    } else if (message.msg === "logout") {
+        handler.logout();
 
-            domainFilter = message.filter;
-            enableRegex = message.regex;
-
-            let success = true;
-            let error;
-            try {
-                const credentials = await getToken(message.email, message.password, credentialsUrl);
-                id = credentials.id;
-                secret = credentials.secret;
-                storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter, enableRegex);
-            } catch (e) {
-                success = false;
-                error = e.message;
-            }
-
-            changeIcon(success);
-
-            return {
-                success,
-                error
-            };
-
-        case "logout":
-            id = undefined;
-            secret = undefined;
-            tokenUrl = undefined;
-            domainFilter = undefined;
-            enableRegex = undefined;
-
-            changeIcon(false);
-            removeClientCredentialsFromBrowserStorage();
-            return;
-
-        case "check-authenticated":
-            const authenticated = (id !== undefined && secret !== undefined && tokenUrl !== undefined);
-            return {
-                authenticated
-            };
-
-        case "get-filter":
-            return {
-                domainFilter,
-                enableRegex
-            }
-
-        case "update-filter":
-            domainFilter = message.filter;
-            enableRegex = message.regex;
-            storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter, enableRegex);
-            return;
+        return {
+            latestIDP: await getLatestIDP(),
+            latestWebID: await getLatestWebID()
+        };
+    } else if (message.msg === "check-authenticated") {
+        console.debug(await getLatestIDP());
+        return {
+            authenticated: handler.isLoggedIn(),
+            name: handler.getUserName(),
+            webId: handler.getWebID(),
+            latestIDP: await getLatestIDP(),
+            latestWebID: await getLatestWebID()
+        };
+    } else if (message.msg === "login-with-oidc") {
+        setCurrentLoginMethod('oidc');
+        handler = oidcHandler;
+        handler.loadHistoryFromStorage();
+        setLatestIDP(message.oidcIssuer);
+        if (message.webId) {
+            setLatestWebID(message.webId);
+        }
+        handler.login({oidcIssuer: message.oidcIssuer});
+    } else if (message.msg === "show-history") {
+        chrome.tabs.create({ url: '/history/index.html' });
+    } else if (message.msg === "clear-history") {
+        handler.clearHistory();
     }
 }
 
@@ -171,75 +184,91 @@ function changeIcon(success) {
 }
 
 /**
- * Load any potential client credentials still stored in the browser storage
+ * Callback for the handlers after logging in.
  */
-function getCredentialsFromBrowserStorage() {
-    loadFromBrowserStorage("solidCredentials", function (result) {
-        if (result.solidCredentials !== undefined) {
-            id = result.solidCredentials.id
-            secret = result.solidCredentials.secret
-            tokenUrl = result.solidCredentials.tokenUrl
-            domainFilter = result.solidCredentials.domainFilter;
-            enableRegex = result.solidCredentials.enableRegex;
-            changeIcon(true);
-        } else {
-            changeIcon(false);
-        }
-    })
+function onLoggedIn() {
+    changeIcon(true);
+    sendMessageToTabs({
+        msg: "change-status",
+        authenticated: true,
+        webId: handler.getWebID(),
+        name: handler.getUserName()
+    });
 }
 
 /**
- * Store the current client credentials and token url into the browser storage
- * @param {String} id - Client ID
- * @param {String} secret - Client secret
- * @param {String} tokenUrl - Token url from which access tokens can be requested
- * @param {String} domainFilter - Filter for domain to which requests require authentication
- * @param {Boolean} enableRegex - Indicates whether domainFilter is regex syntax
+ * Callback for the handlers after logging out.
  */
-function storeCredentialsInBrowserStorage(id, secret, tokenUrl, domainFilter, enableRegex) {
-    storeInBrowserStorage({
-        solidCredentials: {
-            id: id,
-            secret: secret,
-            tokenUrl: tokenUrl,
-            domainFilter: domainFilter,
-            enableRegex: enableRegex
-        }
-    })
+function onLoggedOut() {
+    console.log('Log out');
+    changeIcon(false);
+    sendMessageToTabs({
+        msg: "change-status",
+        authenticated: false
+    });
+}
+
+async function sendMessageToTabs(message) {
+    const tabs = await browser.tabs.query({});
+    if (!tabs) {
+        console.warn('tabs is undefined. No message was sent.');
+        return;
+    }
+    for (const tab of tabs) {
+        browser.tabs
+          .sendMessage(tab.id, message)
+          .catch(err => {}); // Ignore errors for now.
+    }
 }
 
 /**
- * Remove any potential client credentials from browser storage
+ *
+ * @returns {Promise<unknown>}: "oidc" or "client-credentials".
  */
-function removeClientCredentialsFromBrowserStorage() {
-    removeFromBrowserStorage("solidCredentials");
+async function getCurrentLoginMethod() {
+    return new Promise(resolve => {
+        let method = 'oidc' // Default method
+
+        chrome.storage.local.get('loginMethod', result => {
+            if (result.loginMethod) {
+                method = result.loginMethod;
+            }
+
+            resolve(method);
+        });
+    });
 }
 
 /**
- * Load item from the browser storage before calling a callback function with the loaded item as a parameter
- * @param {Object} item - Object containing the item which should be stored in the browser storage
- * @param {Function} callback - Callback function which is called after the item is added
+ * Save login method to browser storage.
+ * @param loginMethod - The login method which is either "oidc" or "client-credentials".
  */
-function loadFromBrowserStorage(item, callback) {
-    chrome.storage.local.get(item, callback);
+function setCurrentLoginMethod(loginMethod) {
+    chrome.storage.local.set({loginMethod});
 }
 
-/**
- * Store item in the browser storage before calling a callback function
- * @param {String} item - Name of the item which should be loaded from the browser storage
- * @param {Function} callback - Callback function which is called after the item is loaded
- */
-function storeInBrowserStorage(item, callback) {
-    chrome.storage.local.set(item, callback);
+function setLatestIDP(latestIDP) {
+    chrome.storage.local.set({latestIDP});
 }
 
-/**
- * Remove item from the browser storage before calling a callback function
- * @param {String} item - Name of the item which should be removed from the browser storage
- * @param {Function} callback - Callback function which is called after the item is removed
- */
-function removeFromBrowserStorage(item, callback) {
-    chrome.storage.local.remove(item, callback);
+async function getLatestIDP() {
+    return new Promise(resolve => {
+        chrome.storage.local.get('latestIDP', result => {
+            resolve(result.latestIDP);
+        });
+    });
+}
+
+function setLatestWebID(latestWebID) {
+    chrome.storage.local.set({latestWebID});
+}
+
+async function getLatestWebID() {
+    return new Promise(resolve => {
+        chrome.storage.local.get('latestWebID', result => {
+            resolve(result.latestWebID);
+        });
+    });
 }
 
 main();

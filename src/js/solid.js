@@ -73,8 +73,6 @@ export async function getTokenUrl(url) {
     return (await (await response.json())).token_endpoint;
 }
 
-
-
 /**
  * Send HEAD request to a url and return the status code of the response
  * @param {String} url - Url to which a HEAD request should be sent
@@ -82,8 +80,8 @@ export async function getTokenUrl(url) {
  */
 export async function sendHead(url) {
     const response = await fetch(url, {
-            method: "HEAD"
-        }
+          method: "HEAD"
+      }
     )
     return response.status;
 }

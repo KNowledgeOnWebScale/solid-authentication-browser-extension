@@ -1,0 +1,11 @@
+#clear-history-button {
+    background-color: #7c4dff;
+    border-color: #7c4dff;
+    box-shadow: #7c4dff;
+}
+
+#clear-history-button:hover {
+    background-color: #683de3;
+    border-color: #683de3;
+    box-shadow: #683de3;
+}

@@ -1,4 +1,25 @@
+#login-button, #logout-button {
+    background-color: #7c4dff;
+    border-color: #7c4dff;
+    box-shadow: #7c4dff;
+    height: 40px;
+}
+
+#login-button:hover, #logout-button:hover {
+    background-color: #683de3;
+    border-color: #683de3;
+    box-shadow: #683de3;
+}
+
 #login-button {
+    width: 80px;
+}
+
+#logout-button {
+    width: 90px;
+}
+
+#update-filter-button {
     background-color: #7c4dff;
     border-color: #7c4dff;
     box-shadow: #7c4dff;
@@ -6,12 +27,9 @@
     width: 80px;
 }
 
-#logout-button {
-    background-color: #7c4dff;
+.form-control:focus {
     border-color: #7c4dff;
-    box-shadow: #7c4dff;
-    height: 40px;
-    width: 90px;
+    box-shadow: 0 0 0 0.2rem #7c4dff;
 }
 
 #update-filter-button {
@@ -52,6 +70,7 @@
 
 .hidden {
     display: none;
+    visibility: hidden;
 }
 
 .loader {
@@ -70,4 +89,18 @@
 
 .text-small {
     font-size: small;
+}
+
+#idp-tab-message {
+    width: 350px;
+}
+
+#idp-webid-switch-idp:checked, #idp-webid-switch-webid:checked {
+    background-color: #7c4dff;
+    border-color: #683de3;
+}
+
+#idp-webid-switch-idp:focus, #idp-webid-switch-webid:focus  {
+    box-shadow: 0 0 0 0.25rem rgba(124,77,255,.25);
+    border-color: #683de3;
 }

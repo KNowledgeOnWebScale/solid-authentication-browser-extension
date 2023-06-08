@@ -2,19 +2,32 @@
   "name": "solid-auth-extension",
   "version": "1.0.0",
   "scripts": {
+    "start": "npx concurrently \"npx gulp\" \"npx web-ext run -s ./dist\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",
+    "build:dev": "webpack --config webpack.dev.config.js",
     "package": "cd dist && zip -r -FS ../solid-authentication.zip * --exclude '*.git*'"
   },
   "devDependencies": {
-    "@inrupt/solid-client-authn-core": "^1.12.2",
+    "@inrupt/solid-client-authn-core": "1.12.2",
     "copy-webpack-plugin": "^11.0.0",
+    "eslint": "^8.42.0",
+    "gulp": "^4.0.2",
     "node-fetch": "^2.0.0",
     "node-polyfill-webpack-plugin": "^2.0.1",
+    "node-stdlib-browser": "^1.2.0",
     "webpack": "^5.76.0",
     "webpack-cli": "^5.0.1"
   },
   "author": "Axel Lorreyne",
+  "contributors": [
+    "Pieter Heyvaert (https://pieterheyvaert.com)"
+  ],
   "private": "true",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@comunica/query-sparql": "^2.6.9",
+    "@inrupt/solid-client-authn-browser": "1.12.2",
+    "@inrupt/solid-client-authn-node": "^1.14.0"
+  }
 }
