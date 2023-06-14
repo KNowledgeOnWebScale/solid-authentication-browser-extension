@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+
+  "name": "Solid Authentication",
+  "description": "Solid Authentication",
+  "version": "1.0",
+
+  "icons": {
+    "48": "solid-48.png"
+  },
+
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs",
+    "webNavigation",
+    "webRequest"
+  ],
+
+  "host_permissions": [
+    "<all_urls>"
+  ],
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Solid Authentication"
+  },
+
+  "background": {
+    "service_worker": "sw.js"
+  }
+}
