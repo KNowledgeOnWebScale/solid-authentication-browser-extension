@@ -96,7 +96,7 @@ export class OIDCHandler extends AuthenticationHandler {
     return {
       authorization: findHeader(this.pendingRequests[requestId].headers, 'authorization'),
       dpop: findHeader(this.pendingRequests[requestId].headers, 'dpop')
-    }
+    };
   }
 
   checkForOIDCRedirect(details) {
