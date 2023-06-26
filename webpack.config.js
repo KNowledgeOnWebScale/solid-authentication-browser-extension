@@ -5,6 +5,7 @@ module.exports = {
     entry: {
         sw: './src/js/sw.js',
         popup: './src/popup/popup.js',
+        content: './src/js/content.js',
     },
     output: {
         path: path.join(__dirname, '/dist'),

@@ -1,25 +1,10 @@
-import { OIDCHandler } from "./oidc-handler";
-
-// Polyfilling the localStorage because the solid inrupt packages use this internally
-// If you want to use local storage, please use chrome.storage.local directly instead of this instance!
-var window = { // eslint-disable-line
-  localStorage: {
-    getAllItems: () => chrome.storage.local.get(),
-    getItem: async key => (await chrome.storage.local.get(key))[key],
-    setItem: (key, val) => chrome.storage.local.set({ [key]: val }),
-    removeItems: keys => chrome.storage.local.remove(keys),
-  },
+let activeIdentity = {
+  type: 'Identity',
+  name: 'John Doe',
+  webId: 'some-web-id',
 };
 
-const oidcHandler = new OIDCHandler({
-  loggedInCallback: () => { },
-  loggedOutCallback: () => { }
-});
-
-const clientCredentialsHandler = {};
-const chrome = chrome;
-
-let authHandler;
+let activePort;
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {
   console.log('%cON INSTALLED', 'padding: 5px; border-radius: 3px; color: #330; background: #fd1; font-weight: bold;', `Reason: ${reason}`);
@@ -29,15 +14,10 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
  * Main function that is called upon extension (re)start
  */
 async function main() {
-  if (await getCurrentLoginMethod() === 'oidc') {
-    authHandler = oidcHandler;
-  } else {
-    authHandler = clientCredentialsHandler;
-  }
-
-  authHandler.loadHistoryFromStorage();
-  authHandler.restore();
-
+  chrome.runtime.onConnectExternal.addListener((port) => {
+    activePort = port;
+    port.onMessage.addListener(handleMessage);
+  });
   /**
    * Runtime message listener, capable of handling and properly awaiting asynchronous functions
    */
@@ -45,75 +25,27 @@ async function main() {
     handleMessage(request).then(sendResponse);
     return true;
   });
-};
-
-/**
- *
- * @returns {Promise<unknown>}: "oidc" or "client-credentials".
- */
-async function getCurrentLoginMethod() {
-  return new Promise(resolve => {
-    let method = 'oidc' // Default method
-
-    chrome.storage.local.get('loginMethod', (result) => {
-      if (result.loginMethod) {
-        method = result.loginMethod;
-      }
-
-      resolve(method);
-    });
-  });
-};
+}
 
 /**
  * Handle various runtime messages sent from the browser action popup
  * @param {Object} message - Message object that contains various parameters, specific to the message's purpose
  */
-async function handleMessage(message) {
-  if (message.msg === 'login-with-client-credentials') {
-    setCurrentLoginMethod('client-credentials');
-    authHandler = clientCredentialsHandler;
-    authHandler.loadHistoryFromStorage();
-    setLatestIDP(message.idp);
+const handleMessage = async (message) => {
+  console.log('%cINCOMING MESSAGE', 'padding: 5px; border-radius: 3px; background: #3347ff; font-weight: bold; color: white', message);
 
-    const success = await authHandler.login({
-      oidcIssuer: message.idp,
-      email: message.email,
-      password: message.password
+  if (!message.type) {
+    console.error('Non-conformal message detected, omitting...');
+    return;
+  }
+
+  if (message.type && message.type === 'request-active-identity') {
+    activePort.postMessage({
+      type: 'identity-response',
+      data: activeIdentity,
     });
 
-    return {
-      success
-    };
-  } else if (message.msg === 'logout') {
-    authHandler.logout();
-
-    return {
-      latestIDP: await getLatestIDP(),
-      latestWebID: await getLatestWebID()
-    };
-  } else if (message.msg === 'check-authenticated') {
-    console.debug(await getLatestIDP());
-    return {
-      authenticated: authHandler.isLoggedIn(),
-      name: authHandler.getUserName(),
-      webId: authHandler.getWebID(),
-      latestIDP: await getLatestIDP(),
-      latestWebID: await getLatestWebID()
-    };
-  } else if (message.msg === 'login-with-oidc') {
-    setCurrentLoginMethod('oidc');
-    authHandler = oidcHandler;
-    authHandler.loadHistoryFromStorage();
-    setLatestIDP(message.oidcIssuer);
-    if (message.webId) {
-      setLatestWebID(message.webId);
-    }
-    authHandler.login({ oidcIssuer: message.oidcIssuer });
-  } else if (message.msg === 'show-history') {
-    chrome.tabs.create({ url: '/history/index.html' });
-  } else if (message.msg === 'clear-history') {
-    authHandler.clearHistory();
+    return;
   }
 }
 

@@ -12,9 +12,7 @@
   "permissions": [
     "activeTab",
     "storage",
-    "tabs",
-    "webNavigation",
-    "webRequest"
+    "scripting"
   ],
 
   "host_permissions": [
@@ -28,5 +26,16 @@
 
   "background": {
     "service_worker": "sw.js"
-  }
+  },
+
+  "externally_connectable": {
+    "matches": ["<all_urls>"]
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
 }
