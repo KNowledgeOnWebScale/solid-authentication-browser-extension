@@ -7,7 +7,7 @@ const main = () => {
 const createNewIdentity = () => {
   createCenteredPopup(
     420,
-    540,
+    640,
     { url: chrome.runtime.getURL("identity-creation.html"), type: "popup" },
   );
 };

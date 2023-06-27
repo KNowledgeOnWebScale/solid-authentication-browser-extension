@@ -30,15 +30,33 @@ label {
   color: #666;
 }
 
+fieldset {
+  margin-bottom: 12px;
+}
+
 input {
   display: block;
-  margin-bottom: 12px;
   width: 100%;
   padding: 12px 18px;
   border: none;
   background-color: #eee;
   border-radius: 24px;
   box-sizing: border-box;
+}
+
+input.error {
+  border: 2px solid #d33;
+}
+
+.error-explanation {
+  color: #d33;
+  font-size: 10px;
+  margin-top: 8px;
+}
+
+input[disabled] {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 button {

@@ -22,14 +22,23 @@
     </div>
 
     <form>
-      <label for="display-name">Display name</label>
-      <input id="display-name" type="text" placeholder="The name in the list" />
+      <fieldset>
+        <label for="display-name">Display name</label>
+        <input id="display-name" type="text" placeholder="The name in the list" />
+        <p id="display-name-error" class="error-explanation"></p>
+      </fieldset>
 
-      <label for="idp">IDP</label>
-      <input id="idp" type="text" placeholder="Solid identity provider" />
+      <fieldset>
+        <label for="idp">IDP</label>
+        <input id="idp" type="text" placeholder="Solid identity provider" />
+        <p id="idp-error" class="error-explanation"></p>
+      </fieldset>
 
-      <label for="webid">... or WebID</label>
-      <input id="webid" type="text" placeholder="Your pod's WebID" />
+      <fieldset>
+        <label for="webid">... or WebID</label>
+        <input id="webid" type="text" placeholder="Your pod's WebID" />
+        <p id="webid-error" class="error-explanation"></p>
+      </fieldset>
 
       <button id="create-button" class="primary">Create</button>
     </form>
