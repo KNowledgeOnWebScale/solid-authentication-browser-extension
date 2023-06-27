@@ -12,7 +12,7 @@
 
 <body>
   <div id="popup-content">
-    <header>
+    <header id="identity-header" class="hidden">
       <h2 id="identity-short">Rafaël</h2>
 
       <span class="avatar">
@@ -20,9 +20,14 @@
       </span>
 
       <div id="active-id-details">
-        <h3 id="full-name">Rafaël Mindreau</h3>
+        <h3 id="full-name">Full Name</h3>
       </div>
     </header>
+
+    <div id="no-identities-prompt">
+      <p>You have no profiles yet</p>
+      <p>Create one to get started.</p>
+    </div>
 
     <section id="identities">
       <div class="section-header">
@@ -35,12 +40,6 @@
       </div>
 
       <ul id="identity-list">
-        <li class="identity-row">
-          <span class="avatar small">
-            R
-          </span>
-          <span>Rafaël</span>
-        </li>
         <li id="add-identity-button" class="identity-row add-identity">
           <svg xmlns="http://www.w3.org/2000/svg" height="1em"
             viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->

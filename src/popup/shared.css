@@ -73,3 +73,7 @@ button.primary {
   background-color: #7B4DFF;
   color: white;
 }
+
+.hidden {
+  display: none;
+}

@@ -38,6 +38,17 @@ header .avatar {
   margin: 20px auto;
 }
 
+#no-identities-prompt {
+  text-align: center;
+  padding: 8px 12px;
+}
+
+#no-identities-prompt p {
+  font-size: 12px;
+  line-height: 18px;
+  color: #999;
+}
+
 section#identities {
   border-top: 1px solid #ddd;
 }

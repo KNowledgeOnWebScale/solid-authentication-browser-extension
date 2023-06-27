@@ -30,10 +30,12 @@ let displayName = '';
 let webID = '';
 let idp = '';
 let activeColor = avatarColors[0];
+let internalPort;
 
 let formErrors = [];
 
 const main = () => {
+  internalPort = chrome.runtime.connect({ name: 'create' });
   const avatar = document.getElementById('avatar');
   const displayNameInputField = document.getElementById('display-name');
   const idpInputField = document.getElementById('idp');
@@ -89,7 +91,19 @@ const main = () => {
 };
 
 const submitForm = (e) => {
-  validateForm();
+  if (validateForm()) {
+    internalPort.postMessage({
+      type: 'create-profile',
+      data: {
+        idp,
+        webID,
+        displayName,
+        color: activeColor,
+      },
+    });
+    window.close();
+  }
+
   e.preventDefault();
 };
 

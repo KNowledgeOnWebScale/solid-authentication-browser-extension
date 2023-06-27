@@ -1,12 +1,8 @@
-let activeIdentity = {
-  type: 'Identity',
-  name: 'John Doe',
-  webId: 'some-web-id',
-};
-
+let activeIdentity;
 let availableIdentities = [];
 
-let activePort;
+let externalPort;
+let internalPort;
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {
   console.log('%cON INSTALLED', 'padding: 5px; border-radius: 3px; color: #330; background: #fd1; font-weight: bold;', `Reason: ${reason}`);
@@ -16,25 +12,80 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
  * Main function that is called upon extension (re)start
  */
 async function main() {
+  // Manage connection to the webpage and popup
   chrome.runtime.onConnectExternal.addListener((port) => {
-    activePort = port;
-    port.onMessage.addListener(handleMessage);
+    externalPort = port;
+    port.onMessage.addListener(handleExternalMessage);
   });
-  /**
-   * Runtime message listener, capable of handling and properly awaiting asynchronous functions
-   */
-  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    handleMessage(request).then(sendResponse);
-    return true;
+
+  chrome.runtime.onConnect.addListener((port) => {
+    internalPort = port;
+    port.onMessage.addListener(handleInternalMessage);
   });
+
+  const storedIdentities = (await chrome.storage.local.get(['availableIdentities'])).availableIdentities;
+  activeIdentity = (await chrome.storage.local.get(['activeIdentity'])).activeIdentity;
+
+  if (storedIdentities) {
+    console.log(storedIdentities);
+    availableIdentities = storedIdentities;
+  } else {
+    availableIdentities = [];
+  }
 }
 
-/**
- * Handle various runtime messages sent from the browser action popup
- * @param {Object} message - Message object that contains various parameters, specific to the message's purpose
- */
-const handleMessage = async (message) => {
-  console.log('%cINCOMING MESSAGE', 'padding: 5px; border-radius: 3px; background: #3347ff; font-weight: bold; color: white', message);
+const handleInternalMessage = async (message) => {
+  console.log('%cINTERNAL MESSAGE', 'padding: 5px; border-radius: 3px; background: #1db94a; font-weight: bold; color: white', message);
+
+  if (!message.type) {
+    console.error('Non-conformal message detected, omitting...');
+    return;
+  }
+
+  if (message.type === 'set-active-identity') {
+    activeIdentity = message.data;
+    chrome.storage.local.set({ activeIdentity });
+    internalPort.postMessage({
+      type: 'active-identity-response',
+      data: activeIdentity,
+    });
+
+    return;
+  }
+
+  if (message.type === 'request-active-identity') {
+    if (!activeIdentity) {
+      console.warn('No active identity!');
+      return;
+    }
+
+    internalPort.postMessage({
+      type: 'active-identity-response',
+      data: activeIdentity,
+    });
+
+    return;
+  }
+
+  if (message.type === 'request-identities') {
+    internalPort.postMessage({
+      type: 'all-identities-response',
+      data: availableIdentities,
+    });
+
+    return;
+  }
+
+  if (message.type === 'create-profile') {
+    activeIdentity = message.data;
+    availableIdentities.push(message.data);
+    chrome.storage.local.set({ availableIdentities });
+    chrome.storage.local.set({ activeIdentity });
+  }
+};
+
+const handleExternalMessage = async (message) => {
+  console.log('%cEXTERNAL MESSAGE', 'padding: 5px; border-radius: 3px; background: #3347ff; font-weight: bold; color: white', message);
 
   if (!message.type) {
     console.error('Non-conformal message detected, omitting...');
@@ -42,8 +93,8 @@ const handleMessage = async (message) => {
   }
 
   if (message.type === 'request-active-identity') {
-    activePort.postMessage({
-      type: 'identity-response',
+    externalPort.postMessage({
+      type: 'active-identity-response',
       data: activeIdentity,
     });
 
