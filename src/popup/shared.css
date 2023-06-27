@@ -1,0 +1,57 @@
+.avatar {
+  display: block;
+  margin: 20px 0;
+  width: 64px;
+
+  border-radius: 64px;
+  border: 2px solid white;
+
+  background-color: #fa0;
+  color: white;
+
+  font-size: 24px;
+  text-align: center;
+  line-height: 64px;
+}
+
+.avatar.small {
+  margin: 0;
+  width: 20px;
+  line-height: 20px;
+  font-size: 10px;
+  border: none;
+  border-radius: 20px;
+}
+
+label {
+  margin: 8px 0;
+  display: block;
+  font-size: 12px;
+  color: #666;
+}
+
+input {
+  display: block;
+  margin-bottom: 12px;
+  width: 100%;
+  padding: 12px 18px;
+  border: none;
+  background-color: #eee;
+  border-radius: 24px;
+  box-sizing: border-box;
+}
+
+button {
+  padding: 12px;
+  border: none;
+
+  border-radius: 36px;
+  cursor: pointer;
+
+  font-weight: bold;
+}
+
+button.primary {
+  background-color: #7B4DFF;
+  color: white;
+}

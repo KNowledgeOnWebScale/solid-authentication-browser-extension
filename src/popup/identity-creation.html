@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Add a new SOLID profile</title>
+
+  <link rel="stylesheet" href="reset.css" />
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" href="pages.css" />
+</head>
+
+<body id="identity-creation-page">
+  <div class="login-box">
+    <h2>Add new profile</h2>
+
+    <span id="avatar" class="avatar">
+      ?
+    </span>
+
+    <div id="color-selection" class="color-selection">
+    </div>
+
+    <form>
+      <label for="display-name">Display name</label>
+      <input id="display-name" type="text" placeholder="The name in the list" />
+
+      <label for="idp">IDP</label>
+      <input id="idp" type="text" placeholder="Solid identity provider" />
+
+      <label for="webid">... or WebID</label>
+      <input id="webid" type="text" placeholder="Your pod's WebID" />
+
+      <button id="create-button" class="primary">Create</button>
+    </form>
+  </div>
+
+  <script type="text/javascript" src="create.js"></script>
+</body>
+
+</html>

@@ -4,6 +4,8 @@ let activeIdentity = {
   webId: 'some-web-id',
 };
 
+let availableIdentities = [];
+
 let activePort;
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {
@@ -39,7 +41,7 @@ const handleMessage = async (message) => {
     return;
   }
 
-  if (message.type && message.type === 'request-active-identity') {
+  if (message.type === 'request-active-identity') {
     activePort.postMessage({
       type: 'identity-response',
       data: activeIdentity,
