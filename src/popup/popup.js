@@ -19,7 +19,6 @@ const handleInternalMessage = (message) => {
   }
 
   if (message.type === 'active-identity-response') {
-    console.log('handling it');
     setActiveIdentity(message.data);
 
     return;

@@ -23,6 +23,10 @@ async function main() {
     port.onMessage.addListener(handleInternalMessage);
   });
 
+  // Uncomment this line, and reload the extension to clear any stored data
+  // Stored data cannot be found in
+  // chrome.storage.local.clear();
+
   const storedIdentities = (await chrome.storage.local.get(['availableIdentities'])).availableIdentities;
   activeIdentity = (await chrome.storage.local.get(['activeIdentity'])).activeIdentity;
 
@@ -45,7 +49,13 @@ const handleInternalMessage = async (message) => {
   if (message.type === 'set-active-identity') {
     activeIdentity = message.data;
     chrome.storage.local.set({ activeIdentity });
+
     internalPort.postMessage({
+      type: 'active-identity-response',
+      data: activeIdentity,
+    });
+
+    externalPort.postMessage({
       type: 'active-identity-response',
       data: activeIdentity,
     });
