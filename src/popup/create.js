@@ -49,7 +49,6 @@ const main = () => {
       value,
     }
   }) => {
-    console.log('%cLENGTH', 'padding: 5px; border-radius: 3px; background: #3ad; font-weight: bold; color: white', value, value.length, !value.length);
     if (!value.length) {
       avatar.innerHTML = '?';
       return;
