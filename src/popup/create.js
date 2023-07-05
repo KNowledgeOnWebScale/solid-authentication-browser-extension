@@ -92,7 +92,9 @@ const main = () => {
 };
 
 const submitForm = (e) => {
-  if (validateForm()) {
+  const formIsValid = validateForm();
+
+  if (formIsValid) {
     internalPort.postMessage({
       type: 'create-profile',
       data: {
@@ -162,11 +164,11 @@ const validateForm = () => {
       ...formErrors,
       {
         id: 'idp',
-        error: 'Please provide an Identity Provider or WebID',
+        error: 'Please provide either an Identity Provider or WebID',
       },
       {
         id: 'webid',
-        error: 'Please provide an Identity Provider or WebID',
+        error: 'Please provide either an Identity Provider or WebID',
       },
     ];
   }

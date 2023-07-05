@@ -38,6 +38,11 @@ async function main() {
   }
 }
 
+const broadcast = (message) => {
+  internalPort.postMessage(message);
+  externalPort.postMessage(message);
+}
+
 const handleInternalMessage = async (message) => {
   console.log('%cINTERNAL MESSAGE', 'padding: 5px; border-radius: 3px; background: #1db94a; font-weight: bold; color: white', message);
 
@@ -50,12 +55,7 @@ const handleInternalMessage = async (message) => {
     activeIdentity = message.data;
     chrome.storage.local.set({ activeIdentity });
 
-    internalPort.postMessage({
-      type: 'active-identity-response',
-      data: activeIdentity,
-    });
-
-    externalPort.postMessage({
+    broadcast({
       type: 'active-identity-response',
       data: activeIdentity,
     });
@@ -91,6 +91,13 @@ const handleInternalMessage = async (message) => {
     availableIdentities.push(message.data);
     chrome.storage.local.set({ availableIdentities });
     chrome.storage.local.set({ activeIdentity });
+
+    broadcast({
+      type: 'active-identity-response',
+      data: activeIdentity,
+    });
+
+    return;
   }
 };
 
@@ -106,6 +113,15 @@ const handleExternalMessage = async (message) => {
     externalPort.postMessage({
       type: 'active-identity-response',
       data: activeIdentity,
+    });
+
+    return;
+  }
+
+  if (message.type === 'request-identities') {
+    externalPort.postMessage({
+      type: 'all-identities-response',
+      data: availableIdentities,
     });
 
     return;
