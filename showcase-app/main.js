@@ -81,7 +81,7 @@ const startLogin = async () => {
   // Start the Login Process if not already logged in.
   if (!getDefaultSession().info.isLoggedIn) {
     await login({
-      oidcIssuer: identityWidget.activeIdentity.idp,
+      oidcIssuer: identityWidget.activeIdentity.idpOrWebID,
       redirectUrl: window.location.href,
       clientName: 'Cool Solid App (showcase)'
     });
@@ -102,11 +102,5 @@ document.getElementById('logout-button').addEventListener('click', (e) => {
   e.preventDefault();
   logout();
 });
-
-// Check URL to complete login process
-// if (window.location.href.includes('/callback')) {
-//   console.log(`Logged in: ${getDefaultSession().info.isLoggedIn}`);
-//   window.location.href = window.location.origin;
-// }
 
 main();

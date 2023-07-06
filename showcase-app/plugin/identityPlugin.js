@@ -1,3 +1,5 @@
+import { QueryEngine } from '@comunica/query-sparql';
+
 const EXTENSION_ID = 'lfmjmfikelnaphplfdkbkmepacogciai';
 const DEBUG = true;
 
@@ -7,16 +9,12 @@ export default class IdentityWidget {
   activeIdentity;
 
   constructor() {
-    this._connect();
+    this._initializeConnection();
   }
 
   /**
    * PRIVATE METHODS
    */
-
-  _connect() {
-    this._initializeConnection();
-  }
 
   _initializeConnection = () => {
     this.port = chrome.runtime.connect(EXTENSION_ID);
@@ -30,10 +28,11 @@ export default class IdentityWidget {
       console.log('%cDISCONNECT', 'padding: 5px; border-radius: 3px; background: #ff3333; font-weight: bold; color: white', 'Extension got disconnected, replenishing connections...');
     }
 
+    // Keep-alive mechanism TODO: check if there isn't a better way of handling this
     this._initializeConnection();
   }
 
-  _handleMessageFromExtension = (message) => {
+  _handleMessageFromExtension = async (message) => {
     if (DEBUG) {
       console.log('%cINCOMING MESSAGE', 'padding: 5px; border-radius: 3px; background: #3347ff; font-weight: bold; color: white', message);
     }
@@ -45,21 +44,50 @@ export default class IdentityWidget {
 
     if (message.type === 'active-identity-response') {
       if (message.data) {
-        this.identityChangedHandler(message.data);
-        this.activeIdentity = message.data;
+        let idpOrWebID = message.data.idp;
+
+        if (message.data.webID) {
+          const idps = await this._getIDPsFromWebID(message.data.webID)
+
+          if (idps.length) {
+            idpOrWebID = idps[0];
+          }
+        }
+
+        this.activeIdentity = {
+          ...message.data,
+          idpOrWebID,
+        };
+
+        this.identityChangedHandler({
+          ...this.activeIdentity,
+        });
       }
     }
   }
 
-  /**
-   * PUBLIC METHODS
-   */
+  async _getIDPsFromWebID(webId) {
+    const myEngine = new QueryEngine();
+    const bindingsStream = await myEngine.queryBindings(`
+    SELECT ?idp WHERE {
+      <${webId}> <http://www.w3.org/ns/solid/terms#oidcIssuer> ?idp
+    } LIMIT 10`, {
+      sources: [webId],
+    });
 
-  getIdentities = () => {
-    this.port.postMessage('request-identities');
+    const bindings = await bindingsStream.toArray();
+    return bindings.map(a => a.get('idp').value);
   }
 
-  onIdentityChanged = (callback) => {
-    this.identityChangedHandler = callback;
-  }
+/**
+ * PUBLIC METHODS (API)
+ */
+
+getIdentities = () => {
+  this.port.postMessage('request-identities');
+}
+
+onIdentityChanged = (callback) => {
+  this.identityChangedHandler = callback;
+}
 }

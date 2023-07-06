@@ -13,6 +13,7 @@
     "vite": "^4.3.9"
   },
   "dependencies": {
+    "@comunica/query-sparql": "^2.8.0",
     "@inrupt/solid-client-authn-browser": "^1.16.0"
   }
 }
