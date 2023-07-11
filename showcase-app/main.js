@@ -43,6 +43,8 @@ const main = async () => {
 
   await handleIncomingRedirect({ restorePreviousSession: true });
 
+  const identities = await identityWidget.getIdentities();
+
   updateState();
 };
 

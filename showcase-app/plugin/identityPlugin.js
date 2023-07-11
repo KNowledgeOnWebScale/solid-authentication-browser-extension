@@ -79,15 +79,25 @@ export default class IdentityWidget {
     return bindings.map(a => a.get('idp').value);
   }
 
-/**
- * PUBLIC METHODS (API)
- */
+  /**
+   * PUBLIC METHODS (API)
+   */
 
-getIdentities = () => {
-  this.port.postMessage('request-identities');
-}
+  getIdentities = () => {
+    return new Promise((resolve) => {
+      const handleRequest = (message) => {
+        if (message.type === 'all-identities-response') {
+          resolve(message.data);
+          this.port.onMessage.removeListener(handleRequest);
+        }
+      };
 
-onIdentityChanged = (callback) => {
-  this.identityChangedHandler = callback;
-}
+      this.port.onMessage.addListener(handleRequest);
+      this.port.postMessage({ type: 'request-identities' });
+    });
+  }
+
+  onIdentityChanged = (callback) => {
+    this.identityChangedHandler = callback;
+  }
 }
