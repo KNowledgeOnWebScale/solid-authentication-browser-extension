@@ -1,3 +1,5 @@
+import { v4 as uuid } from 'uuid';
+
 let activeIdentity;
 let availableIdentities = [];
 
@@ -31,7 +33,6 @@ async function main() {
   activeIdentity = (await chrome.storage.local.get(['activeIdentity'])).activeIdentity;
 
   if (storedIdentities) {
-    console.log(storedIdentities);
     availableIdentities = storedIdentities;
   } else {
     availableIdentities = [];
@@ -87,14 +88,35 @@ const handleInternalMessage = async (message) => {
   }
 
   if (message.type === 'create-profile') {
-    activeIdentity = message.data;
-    availableIdentities.push(message.data);
+    activeIdentity = {
+      id: uuid(),
+      ...message.data
+    };
+
+    availableIdentities.push(activeIdentity);
     chrome.storage.local.set({ availableIdentities });
     chrome.storage.local.set({ activeIdentity });
 
     broadcast({
       type: 'active-identity-response',
       data: activeIdentity,
+    });
+
+    return;
+  }
+
+  if (message.type === 'update-profile') {
+    const indexToUpdate = availableIdentities.findIndex(({ id }) => message.data.id === id);
+
+    availableIdentities.splice(indexToUpdate, 1, {
+      ...message.data
+    });
+
+    chrome.storage.local.set({ availableIdentities });
+
+    broadcast({
+      type: 'all-identities-response',
+      data: availableIdentities,
     });
 
     return;

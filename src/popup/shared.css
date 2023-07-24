@@ -77,3 +77,18 @@ button.primary {
 .hidden {
   display: none;
 }
+
+dialog {
+  position: fixed;
+  padding: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #00000022;
+  border: none;
+}
+
+dialog[open] {
+  display: flex;
+}

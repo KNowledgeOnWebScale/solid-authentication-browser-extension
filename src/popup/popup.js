@@ -10,6 +10,10 @@ const main = () => {
   document.getElementById('add-identity-button').addEventListener('click', () => {
     createNewIdentity();
   });
+
+  document.getElementById('settings-button').addEventListener('click', () => {
+    openSettings();
+  });
 }
 
 const handleInternalMessage = (message) => {
@@ -36,6 +40,14 @@ const handleInternalMessage = (message) => {
 
     return;
   }
+};
+
+const openSettings = () => {
+  createCenteredPopup(
+    720,
+    720,
+    { url: chrome.runtime.getURL("settings.html"), type: "popup" },
+  );
 };
 
 const createNewIdentity = () => {
