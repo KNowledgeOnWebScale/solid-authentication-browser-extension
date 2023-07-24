@@ -41,7 +41,10 @@ async function main() {
 
 const broadcast = (message) => {
   internalPort.postMessage(message);
-  externalPort.postMessage(message);
+
+  if (externalPort) {
+    externalPort.postMessage(message);
+  }
 }
 
 const handleInternalMessage = async (message) => {
