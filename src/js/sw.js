@@ -124,6 +124,21 @@ const handleInternalMessage = async (message) => {
 
     return;
   }
+
+  if (message.type === 'delete-profile') {
+    const indexToRemove = availableIdentities.findIndex(({ id }) => message.data.id === id);
+
+    availableIdentities.splice(indexToRemove, 1);
+
+    chrome.storage.local.set({ availableIdentities });
+
+    broadcast({
+      type: 'all-identities-response',
+      data: availableIdentities,
+    });
+
+    return;
+  }
 };
 
 const handleExternalMessage = async (message) => {

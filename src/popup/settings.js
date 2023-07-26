@@ -32,7 +32,8 @@ const avatarColors = [
 
 let avatar;
 let activeColor = avatarColors[0];
-let dialog;
+let profileEditDialog;
+let confirmDialog;
 
 let formErrors = [];
 
@@ -75,22 +76,34 @@ const main = () => {
     setMutuallyExclusiveField();
   });
 
-  dialog = document.getElementById('profile-edit-dialog');
-  const dialogContent = document.getElementById('profile-edit-dialog-content');
+  profileEditDialog = document.getElementById('profile-edit-dialog');
+  const profileDialogContent = document.getElementById('profile-edit-dialog-content');
+  const confirmDialogContent = document.getElementById('confirm-dialog-content');
+  confirmDialog = document.getElementById('confirm-dialog');
 
-  dialog.addEventListener('click', () => {
-    dialog.close();
+  profileEditDialog.addEventListener('click', () => {
+    profileEditDialog.close();
   });
 
-  dialogContent.addEventListener('click', (e) => {
+  confirmDialog.addEventListener('click', () => {
+    confirmDialog.close();
+  });
+
+  profileDialogContent.addEventListener('click', (e) => {
     e.stopPropagation();
   });
 
-  document.getElementById('save-button').addEventListener('click', submitForm);
+  confirmDialogContent.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  document.getElementById('save-button').addEventListener('click', saveProfile);
+  document.getElementById('delete-button').addEventListener('click', deleteProfile);
+  document.getElementById('cancel-button').addEventListener('click', () => confirmDialog.close());
   internalPort.postMessage({ type: 'request-identities' });
 };
 
-const submitForm = (e) => {
+const saveProfile = (e) => {
   const formIsValid = validateForm();
 
   if (formIsValid) {
@@ -100,8 +113,29 @@ const submitForm = (e) => {
         ...selectedIdentity,
       },
     });
-    dialog.close();
+    profileEditDialog.close();
   }
+
+  e.preventDefault();
+};
+
+const deleteProfile = async (e) => {
+  confirmDialog.show();
+
+  const confirmAction = () => {
+    internalPort.postMessage({
+      type: 'delete-profile',
+      data: {
+        ...selectedIdentity,
+      },
+    });
+
+    confirmDialog.close();
+    profileEditDialog.close();
+    document.getElementById('confirm-button').removeEventListener('click', confirmAction);
+  };
+
+  document.getElementById('confirm-button').addEventListener('click', confirmAction);
 
   e.preventDefault();
 };
@@ -188,7 +222,7 @@ const createIdentityBox = (identity) => {
   identityBox.addEventListener('click', () => {
     selectedIdentity = identity;
     populateEditDialog();
-    dialog.show();
+    profileEditDialog.show();
   });
 
   return identityBox;

@@ -17,6 +17,19 @@
   width: 512px;
 }
 
+#confirm-dialog h2, #confirm-dialog h2 {
+  margin-bottom: 20px;
+}
+
+#confirm-dialog p {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+#confirm-dialog button {
+  margin-top: 20px;
+}
+
 .color-selection {
   display: flex;
   gap: 4px;
