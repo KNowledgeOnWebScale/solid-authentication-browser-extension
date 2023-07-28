@@ -109,33 +109,49 @@ const handleInternalMessage = async (message) => {
   }
 
   if (message.type === 'update-profile') {
+    // Find and replace the profile in the list of available identities
     const indexToUpdate = availableIdentities.findIndex(({ id }) => message.data.id === id);
 
     availableIdentities.splice(indexToUpdate, 1, {
       ...message.data
     });
 
+    // Persist the list of identities to storage
     chrome.storage.local.set({ availableIdentities });
 
+    // Notify all connected components about the new source of truth
     broadcast({
       type: 'all-identities-response',
       data: availableIdentities,
     });
+
+    // Check if the selected profile affected
+    if (activeIdentity.id === message.data.id) {
+      activeIdentity = message.data;
+    }
 
     return;
   }
 
   if (message.type === 'delete-profile') {
+    // Find and delete the profile in the list of available identities
     const indexToRemove = availableIdentities.findIndex(({ id }) => message.data.id === id);
 
     availableIdentities.splice(indexToRemove, 1);
 
+    // Persist the list of identities to storage
     chrome.storage.local.set({ availableIdentities });
 
+    // Notify all connected components about the new source of truth
     broadcast({
       type: 'all-identities-response',
       data: availableIdentities,
     });
+
+    // Check if the selected profile affected
+    if (activeIdentity.id === message.data.id) {
+      activeIdentity = undefined;
+    }
 
     return;
   }
