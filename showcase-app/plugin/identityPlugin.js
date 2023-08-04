@@ -100,4 +100,13 @@ export default class IdentityWidget {
   onIdentityChanged = (callback) => {
     this.identityChangedHandler = callback;
   }
+
+  updateProfile = (identity) => {
+    this.port.postMessage({
+      type: 'update-profile',
+      data: {
+        ...identity,
+      },
+    });
+  }
 }

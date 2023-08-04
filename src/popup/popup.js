@@ -1,5 +1,6 @@
 let availableIdentities = [];
 let internalPort;
+let activeIdentity;
 
 const main = () => {
   internalPort = chrome.runtime.connect({ name: 'popup' });
@@ -36,6 +37,14 @@ const handleInternalMessage = (message) => {
     availableIdentities.forEach((identity) => {
       const identityRow = createIdentityRow(identity);
       list.insertBefore(identityRow, listAddButton);
+
+      if (activeIdentity && identity.id === activeIdentity.id) {
+        if (identity.metadata?.name) {
+          document.getElementById('full-name').innerHTML = identity.metadata.name;
+        } else {
+          document.getElementById('full-name').innerHTML = '';
+        }
+      }
     });
 
     return;
@@ -96,8 +105,17 @@ const createIdentityRow = (identity) => {
 };
 
 const setActiveIdentity = (identity) => {
+  activeIdentity = identity;
   document.getElementById('no-identities-prompt').classList.add('hidden');
   document.getElementById('identity-short').innerHTML = identity.displayName;
+
+  console.log(identity);
+
+  if (identity.metadata?.name) {
+    document.getElementById('full-name').innerHTML = identity.metadata.name;
+  } else {
+    document.getElementById('full-name').innerHTML = '';
+  }
 
   const identityHeader = document.getElementById('identity-header');
   const avatar = identityHeader.querySelector('.avatar');

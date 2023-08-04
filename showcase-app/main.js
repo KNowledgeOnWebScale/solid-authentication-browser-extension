@@ -1,4 +1,10 @@
-import { login, getDefaultSession, handleIncomingRedirect } from '@inrupt/solid-client-authn-browser';
+import { fetch, login, getDefaultSession, handleIncomingRedirect } from '@inrupt/solid-client-authn-browser';
+import {
+  getSolidDataset,
+  getThing,
+  getStringNoLocale
+} from "@inrupt/solid-client";
+import { SCHEMA_INRUPT } from "@inrupt/vocab-common-rdf";
 import IdentityWidget from './plugin/identityPlugin';
 
 import './reset.css';
@@ -38,21 +44,42 @@ let identityWidget;
  * Application-side code for demonstration purposes
  */
 const main = async () => {
+  // Create new link to chrome extension and link change callback to detect changes in identity:
   identityWidget = new IdentityWidget();
   identityWidget.onIdentityChanged(handleIdentityChange);
 
+  // Restore session if available:
   await handleIncomingRedirect({ restorePreviousSession: true });
 
-  const identities = await identityWidget.getIdentities();
+  // You can get a list of all identities currently available from the chrome extension:
+  // const identities = await identityWidget.getIdentities();
 
   updateState();
 };
 
-const updateState = () => {
+const updateState = async () => {
   if (getDefaultSession().info.isLoggedIn) {
     console.log('%cLOGGED IN', 'padding: 5px; border-radius: 3px; background: #e3c; font-weight: bold; color: white', getDefaultSession().info);
     document.getElementById('app-card').classList.remove('hidden');
     document.getElementById('login-card').classList.add('hidden');
+
+    const session = getDefaultSession();
+
+    // For example, the user must be someone with Read access to the specified URL.
+    const myDataset = await getSolidDataset(
+      session.info.webId,
+      { fetch }
+    );
+
+    const me = getThing(myDataset, session.info.webId);
+    const name = getStringNoLocale(me, SCHEMA_INRUPT.name);
+
+    identityWidget.updateProfile({
+      ...identityWidget.activeIdentity,
+      metadata: {
+        name,
+      },
+    });
   } else {
     document.getElementById('app-card').classList.add('hidden');
     document.getElementById('login-card').classList.remove('hidden');
