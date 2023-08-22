@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
 
-  "name": "Solid Authentication",
-  "description": "Solid Authentication",
+  "name": "Solid Identity Extension",
+  "description": "Manage and switch between your Solid identities",
   "version": "1.0",
 
   "icons": {
