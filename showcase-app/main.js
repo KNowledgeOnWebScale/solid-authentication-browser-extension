@@ -44,7 +44,7 @@ let identityWidget;
  * Application-side code for demonstration purposes
  */
 const main = async () => {
-  // Create new link to chrome extension and link change callback to detect changes in identity:
+  // Create new link to chrome extension and link callback to detect changes in identity:
   identityWidget = new IdentityWidget();
   identityWidget.onIdentityChanged(handleIdentityChange);
 
@@ -57,6 +57,7 @@ const main = async () => {
   updateState();
 };
 
+// Invalidates the application - purely checks whether logged in or not and updates app state based on that
 const updateState = async () => {
   if (getDefaultSession().info.isLoggedIn) {
     console.log('%cLOGGED IN', 'padding: 5px; border-radius: 3px; background: #e3c; font-weight: bold; color: white', getDefaultSession().info);
@@ -65,19 +66,23 @@ const updateState = async () => {
 
     const session = getDefaultSession();
 
-    // For example, the user must be someone with Read access to the specified URL.
+    // Getting dataset from a specific WebID (the one that was logged in with)
     const myDataset = await getSolidDataset(
       session.info.webId,
       { fetch }
     );
 
+    // Getting contents at /me from the current pod
     const me = getThing(myDataset, session.info.webId);
+
+    // Getting the name from the vcard if exists
     const name = getStringNoLocale(me, SCHEMA_INRUPT.name);
 
+    // By means of an example, we can pump back metadata from the pod to the extension using metadata and an update event
     identityWidget.updateProfile({
       ...identityWidget.activeIdentity,
       metadata: {
-        name,
+        name, // The name is also a property used by the extension to show more specific data once a user has finally logged in
       },
     });
   } else {

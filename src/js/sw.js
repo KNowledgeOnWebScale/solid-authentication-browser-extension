@@ -1,3 +1,7 @@
+/**
+ * Manifest V3 Service Worker for chrome extension
+ */
+
 import { v4 as uuid } from 'uuid';
 
 let activeIdentity;
@@ -14,21 +18,22 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
  * Main function that is called upon extension (re)start
  */
 async function main() {
-  // Manage connection to the webpage and popup
+  // Set up the messaging port to share data with Solid Apps in tabs
   chrome.runtime.onConnectExternal.addListener((port) => {
     externalPort = port;
     port.onMessage.addListener(handleExternalMessage);
   });
 
+  // Set up the messaging port to share data with the extension's popups and separate windows
   chrome.runtime.onConnect.addListener((port) => {
     internalPort = port;
     port.onMessage.addListener(handleInternalMessage);
   });
 
   // Uncomment this line, and reload the extension to clear any stored data
-  // Stored data cannot be found in
   // chrome.storage.local.clear();
 
+  // Get all identities created previously by the user
   const storedIdentities = (await chrome.storage.local.get(['availableIdentities'])).availableIdentities;
   activeIdentity = (await chrome.storage.local.get(['activeIdentity'])).activeIdentity;
 
@@ -39,6 +44,9 @@ async function main() {
   }
 }
 
+/**
+ * Posts a message to all connected apps (tabs) and internal windows/popups
+ */
 const broadcast = (message) => {
   internalPort.postMessage(message);
 
@@ -47,6 +55,9 @@ const broadcast = (message) => {
   }
 }
 
+/**
+ * Message handler for all messages from popups and windows within the extension scope
+ */
 const handleInternalMessage = async (message) => {
   console.log('%cINTERNAL MESSAGE', 'padding: 5px; border-radius: 3px; background: #1db94a; font-weight: bold; color: white', message);
 
@@ -157,6 +168,9 @@ const handleInternalMessage = async (message) => {
   }
 };
 
+/**
+ * Message handler for all messages from a Solid App (separate context in a tab)
+ */
 const handleExternalMessage = async (message) => {
   console.log('%cEXTERNAL MESSAGE', 'padding: 5px; border-radius: 3px; background: #3347ff; font-weight: bold; color: white', message);
 
