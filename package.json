@@ -5,7 +5,9 @@
     "start": "webpack --watch --config webpack.dev.config.js",
     "build": "webpack",
     "build:dev": "webpack --config webpack.dev.config.js",
-    "package": "cd dist && zip -r -FS ../solid-authentication.zip * --exclude '*.git*'"
+    "package": "cd dist && zip -r -FS ../solid-authentication.zip * --exclude '*.git*'",
+    "lint:markdown": "markdownlint-cli2",
+    "lint:markdown:fix": "markdownlint-cli2-fix"
   },
   "author": "rafael-mindreau",
   "private": "true",
@@ -14,7 +16,8 @@
     "copy-webpack-plugin": "^11.0.0",
     "eslint": "^8.42.0",
     "webpack": "^5.86.0",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "markdownlint-cli2": "^0.8.1"
   },
   "dependencies": {
     "uuid": "^9.0.0"
