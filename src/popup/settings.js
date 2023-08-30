@@ -203,7 +203,7 @@ const handleMessage = (message) => {
 
     return;
   }
-}
+};
 
 const createIdentityBox = (identity) => {
   const identityBox = document.createElement('li');

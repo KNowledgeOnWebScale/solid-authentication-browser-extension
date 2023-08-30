@@ -3,8 +3,8 @@ import {
   getSolidDataset,
   getThing,
   getStringNoLocale
-} from "@inrupt/solid-client";
-import { SCHEMA_INRUPT } from "@inrupt/vocab-common-rdf";
+} from '@inrupt/solid-client';
+import { SCHEMA_INRUPT } from '@inrupt/vocab-common-rdf';
 import IdentityWidget from './plugin/identityPlugin';
 
 import './reset.css';

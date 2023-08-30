@@ -15,7 +15,7 @@ const main = () => {
   document.getElementById('settings-button').addEventListener('click', () => {
     openSettings();
   });
-}
+};
 
 const handleInternalMessage = (message) => {
   if (!message.type) {
@@ -55,7 +55,7 @@ const openSettings = () => {
   createCenteredPopup(
     720,
     720,
-    { url: chrome.runtime.getURL("settings.html"), type: "popup" },
+    { url: chrome.runtime.getURL('settings.html'), type: 'popup' },
   );
 };
 
@@ -63,7 +63,7 @@ const createNewIdentity = () => {
   createCenteredPopup(
     420,
     640,
-    { url: chrome.runtime.getURL("identity-creation.html"), type: "popup" },
+    { url: chrome.runtime.getURL('identity-creation.html'), type: 'popup' },
   );
 };
 
@@ -122,6 +122,6 @@ const setActiveIdentity = (identity) => {
   avatar.innerHTML = identity.displayName[0];
   avatar.setAttribute('style', `background-color: ${identity.color.background}; color: ${identity.color.color}`);
   identityHeader.classList.remove('hidden');
-}
+};
 
 main();

@@ -1,7 +1,7 @@
 const config = require('./webpack.config');
 
 config.optimization = {
-    minimize: false,
+  minimize: false,
 };
 
 config.mode = 'development';

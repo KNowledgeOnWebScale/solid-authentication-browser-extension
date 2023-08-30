@@ -20,6 +20,7 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
 async function main() {
   // Set up the messaging port to share data with Solid Apps in tabs
   chrome.runtime.onConnectExternal.addListener((port) => {
+    console.log('New app connected on port', port);
     externalPort = port;
     port.onMessage.addListener(handleExternalMessage);
   });
@@ -46,6 +47,7 @@ async function main() {
 
 /**
  * Posts a message to all connected apps (tabs) and internal windows/popups
+ * @param message
  */
 const broadcast = (message) => {
   internalPort.postMessage(message);
@@ -53,10 +55,11 @@ const broadcast = (message) => {
   if (externalPort) {
     externalPort.postMessage(message);
   }
-}
+};
 
 /**
  * Message handler for all messages from popups and windows within the extension scope
+ * @param message
  */
 const handleInternalMessage = async (message) => {
   console.log('%cINTERNAL MESSAGE', 'padding: 5px; border-radius: 3px; background: #1db94a; font-weight: bold; color: white', message);
@@ -170,6 +173,7 @@ const handleInternalMessage = async (message) => {
 
 /**
  * Message handler for all messages from a Solid App (separate context in a tab)
+ * @param message
  */
 const handleExternalMessage = async (message) => {
   console.log('%cEXTERNAL MESSAGE', 'padding: 5px; border-radius: 3px; background: #3347ff; font-weight: bold; color: white', message);
@@ -221,6 +225,6 @@ const handleExternalMessage = async (message) => {
 
     return;
   }
-}
+};
 
 main();

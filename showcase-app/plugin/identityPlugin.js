@@ -1,6 +1,6 @@
 import { QueryEngine } from '@comunica/query-sparql';
 
-const EXTENSION_ID = 'lfmjmfikelnaphplfdkbkmepacogciai';
+const EXTENSION_ID = 'iemdmmbmambddklboogccaofpfgidpef';
 const DEBUG = true;
 
 /**
@@ -30,7 +30,7 @@ export default class IdentityWidget {
     this.port.onDisconnect.addListener(this._handleDisconnect);
     this.port.onMessage.addListener(this._handleMessageFromExtension);
     this.port.postMessage({ type: 'request-active-identity' });
-  }
+  };
 
   _handleDisconnect = () => {
     if (DEBUG) {
@@ -41,10 +41,11 @@ export default class IdentityWidget {
     // The idea is to only update the connection when it is absolutely needed
     // Keep-alive mechanism TODO: check if there isn't a better way of handling this
     this._initializeConnection();
-  }
+  };
 
   /**
    * Handle messages sent from the extension
+   * @param message
    */
   _handleMessageFromExtension = async (message) => {
     if (DEBUG) {
@@ -64,7 +65,7 @@ export default class IdentityWidget {
 
         if (message.data.webID) {
           // IF the identity has a WebID, we need to figure out which IDP to redirect to
-          const idps = await this._getIDPsFromWebID(message.data.webID)
+          const idps = await this._getIDPsFromWebID(message.data.webID);
 
           // In the end we set the IDP anyway. User gets redirected to IDP. If it supports more than one WebID, the user can confirm or select the correct one there.
           if (idps.length) {
@@ -85,12 +86,13 @@ export default class IdentityWidget {
         });
       }
     }
-  }
+  };
 
   /**
    * Queries for an IDP for a given WebID
    * We use the IDPs generally for redirecting the user to the login/authorization flow of their IDP
    * TODO: If your WebID does not exist or the IDP cannot be determined, this will fail with an error and no fallback
+   * @param webId
    */
   async _getIDPsFromWebID(webId) {
     const myEngine = new QueryEngine();
@@ -128,7 +130,7 @@ export default class IdentityWidget {
       this.port.onMessage.addListener(handleRequest);
       this.port.postMessage({ type: 'request-identities' });
     });
-  }
+  };
 
   /**
    * Call this method with the function you want to execute whenever a profile change occurs
@@ -136,12 +138,13 @@ export default class IdentityWidget {
    */
   onIdentityChanged = (callback) => {
     this.identityChangedHandler = callback;
-  }
+  };
 
   /**
    * Updates the profile in the extension
    * Call this function if you want to change a user's profile or annotate it with new data
    * A profile can have a metadata Object { name: ? } with a name property (currently) which can then show more data coming from - for example - the pod, in the extension
+   * @param identity
    */
   updateProfile = (identity) => {
     this.port.postMessage({
@@ -150,5 +153,5 @@ export default class IdentityWidget {
         ...identity,
       },
     });
-  }
+  };
 }
