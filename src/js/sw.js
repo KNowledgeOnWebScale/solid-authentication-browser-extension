@@ -1,8 +1,9 @@
 /**
- * Manifest V3 Service Worker for chrome extension
+ * Manifest V3 Service Worker for Chrome extension
  */
 
 import { v4 as uuid } from 'uuid';
+import { QueryEngine } from '@comunica/query-sparql';
 
 let activeIdentity;
 let availableIdentities = [];
@@ -11,7 +12,11 @@ let externalPort;
 let internalPort;
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {
-  console.log('%cON INSTALLED', 'padding: 5px; border-radius: 3px; color: #330; background: #fd1; font-weight: bold;', `Reason: ${reason}`);
+  console.log(
+    '%cON INSTALLED',
+    'padding: 5px; border-radius: 3px; color: #330; background: #fd1; font-weight: bold;',
+    `Reason: ${reason}`,
+  );
 });
 
 /**
@@ -35,8 +40,11 @@ async function main() {
   // chrome.storage.local.clear();
 
   // Get all identities created previously by the user
-  const storedIdentities = (await chrome.storage.local.get(['availableIdentities'])).availableIdentities;
-  activeIdentity = (await chrome.storage.local.get(['activeIdentity'])).activeIdentity;
+  const storedIdentities = (
+    await chrome.storage.local.get(['availableIdentities'])
+  ).availableIdentities;
+  activeIdentity = (await chrome.storage.local.get(['activeIdentity']))
+    .activeIdentity;
 
   if (storedIdentities) {
     availableIdentities = storedIdentities;
@@ -47,7 +55,7 @@ async function main() {
 
 /**
  * Posts a message to all connected apps (tabs) and internal windows/popups
- * @param message
+ * @param {string} message The message to broadcast
  */
 const broadcast = (message) => {
   internalPort.postMessage(message);
@@ -58,11 +66,40 @@ const broadcast = (message) => {
 };
 
 /**
+ * Queries for an IDP for a given WebID
+ * We use the IDPs generally for redirecting the user to the login/authorization flow of their IDP
+ * TODO: If your WebID does not exist or the IDP cannot be determined, this will fail with an error and no fallback
+ * https://github.com/KNowledgeOnWebScale/solid-authentication-browser-extension/issues/48
+ * @param {string} webId - the WebID
+ * @returns {Promise<string[]>} - the IDPs
+ */
+async function getIDPsFromWebID(webId) {
+  const myEngine = new QueryEngine();
+  const bindingsStream = await myEngine.queryBindings(
+    `
+    SELECT ?idp WHERE {
+      <${webId}> <http://www.w3.org/ns/solid/terms#oidcIssuer> ?idp
+    } LIMIT 10`,
+    {
+      sources: [webId],
+    },
+  );
+
+  const bindings = await bindingsStream.toArray();
+  return bindings.map((a) => a.get('idp').value);
+}
+
+/**
  * Message handler for all messages from popups and windows within the extension scope
- * @param message
+ * @param {object} message The received message
+ * @param {string} message.type - The message type
  */
 const handleInternalMessage = async (message) => {
-  console.log('%cINTERNAL MESSAGE', 'padding: 5px; border-radius: 3px; background: #1db94a; font-weight: bold; color: white', message);
+  console.log(
+    '%cINTERNAL MESSAGE',
+    'padding: 5px; border-radius: 3px; background: #1db94a; font-weight: bold; color: white',
+    message,
+  );
 
   if (!message.type) {
     console.error('Non-conformal message detected, omitting...');
@@ -71,6 +108,17 @@ const handleInternalMessage = async (message) => {
 
   if (message.type === 'set-active-identity') {
     activeIdentity = message.data;
+
+    let idpOrWebID = activeIdentity.idp;
+    if (activeIdentity.webID) {
+      const idps = await getIDPsFromWebID(activeIdentity.webID);
+      // In the end we set the IDP anyway. User gets redirected to IDP. If it supports more than one WebID, the user can confirm or select the correct one there.
+      if (idps.length) {
+        idpOrWebID = idps[0];
+      }
+    }
+    activeIdentity.idpOrWebID = idpOrWebID;
+
     chrome.storage.local.set({ activeIdentity });
 
     broadcast({
@@ -107,7 +155,7 @@ const handleInternalMessage = async (message) => {
   if (message.type === 'create-profile') {
     activeIdentity = {
       id: uuid(),
-      ...message.data
+      ...message.data,
     };
 
     availableIdentities.push(activeIdentity);
@@ -124,10 +172,12 @@ const handleInternalMessage = async (message) => {
 
   if (message.type === 'update-profile') {
     // Find and replace the profile in the list of available identities
-    const indexToUpdate = availableIdentities.findIndex(({ id }) => message.data.id === id);
+    const indexToUpdate = availableIdentities.findIndex(
+      ({ id }) => message.data.id === id,
+    );
 
     availableIdentities.splice(indexToUpdate, 1, {
-      ...message.data
+      ...message.data,
     });
 
     // Persist the list of identities to storage
@@ -149,7 +199,9 @@ const handleInternalMessage = async (message) => {
 
   if (message.type === 'delete-profile') {
     // Find and delete the profile in the list of available identities
-    const indexToRemove = availableIdentities.findIndex(({ id }) => message.data.id === id);
+    const indexToRemove = availableIdentities.findIndex(
+      ({ id }) => message.data.id === id,
+    );
 
     availableIdentities.splice(indexToRemove, 1);
 
@@ -166,17 +218,21 @@ const handleInternalMessage = async (message) => {
     if (activeIdentity.id === message.data.id) {
       activeIdentity = undefined;
     }
-
-    return;
   }
 };
 
 /**
  * Message handler for all messages from a Solid App (separate context in a tab)
- * @param message
+ * @param {object} message The message to send
+ * @param {string} message.type - The message type
+ * @param {object} message.data - The message data
  */
 const handleExternalMessage = async (message) => {
-  console.log('%cEXTERNAL MESSAGE', 'padding: 5px; border-radius: 3px; background: #3347ff; font-weight: bold; color: white', message);
+  console.log(
+    '%cEXTERNAL MESSAGE',
+    'padding: 5px; border-radius: 3px; background: #3347ff; font-weight: bold; color: white',
+    message,
+  );
 
   if (!message.type) {
     console.error('Non-conformal message detected, omitting...');
@@ -203,10 +259,12 @@ const handleExternalMessage = async (message) => {
 
   if (message.type === 'update-profile') {
     // Find and replace the profile in the list of available identities
-    const indexToUpdate = availableIdentities.findIndex(({ id }) => message.data.id === id);
+    const indexToUpdate = availableIdentities.findIndex(
+      ({ id }) => message.data.id === id,
+    );
 
     availableIdentities.splice(indexToUpdate, 1, {
-      ...message.data
+      ...message.data,
     });
 
     // Persist the list of identities to storage
@@ -222,8 +280,6 @@ const handleExternalMessage = async (message) => {
     if (activeIdentity.id === message.data.id) {
       activeIdentity = message.data;
     }
-
-    return;
   }
 };
 

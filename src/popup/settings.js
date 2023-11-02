@@ -49,36 +49,28 @@ const main = () => {
   const idpInputField = document.getElementById('idp');
   const webIdInputField = document.getElementById('webid');
 
-  displayNameInputField.addEventListener('input', ({
-    target: {
-      value,
-    }
-  }) => {
+  displayNameInputField.addEventListener('input', ({ target: { value } }) => {
     selectedIdentity.displayName = value;
     updateAvatarContent(value);
   });
 
-  idpInputField.addEventListener('input', ({
-    target: {
-      value,
-    }
-  }) => {
+  idpInputField.addEventListener('input', ({ target: { value } }) => {
     selectedIdentity.idp = value;
     setMutuallyExclusiveField();
   });
 
-  webIdInputField.addEventListener('input', ({
-    target: {
-      value,
-    }
-  }) => {
+  webIdInputField.addEventListener('input', ({ target: { value } }) => {
     selectedIdentity.webID = value;
     setMutuallyExclusiveField();
   });
 
   profileEditDialog = document.getElementById('profile-edit-dialog');
-  const profileDialogContent = document.getElementById('profile-edit-dialog-content');
-  const confirmDialogContent = document.getElementById('confirm-dialog-content');
+  const profileDialogContent = document.getElementById(
+    'profile-edit-dialog-content',
+  );
+  const confirmDialogContent = document.getElementById(
+    'confirm-dialog-content',
+  );
   confirmDialog = document.getElementById('confirm-dialog');
 
   profileEditDialog.addEventListener('click', () => {
@@ -98,8 +90,12 @@ const main = () => {
   });
 
   document.getElementById('save-button').addEventListener('click', saveProfile);
-  document.getElementById('delete-button').addEventListener('click', deleteProfile);
-  document.getElementById('cancel-button').addEventListener('click', () => confirmDialog.close());
+  document
+    .getElementById('delete-button')
+    .addEventListener('click', deleteProfile);
+  document
+    .getElementById('cancel-button')
+    .addEventListener('click', () => confirmDialog.close());
   internalPort.postMessage({ type: 'request-identities' });
 };
 
@@ -132,10 +128,14 @@ const deleteProfile = async (e) => {
 
     confirmDialog.close();
     profileEditDialog.close();
-    document.getElementById('confirm-button').removeEventListener('click', confirmAction);
+    document
+      .getElementById('confirm-button')
+      .removeEventListener('click', confirmAction);
   };
 
-  document.getElementById('confirm-button').addEventListener('click', confirmAction);
+  document
+    .getElementById('confirm-button')
+    .addEventListener('click', confirmAction);
 
   e.preventDefault();
 };
@@ -143,39 +143,42 @@ const deleteProfile = async (e) => {
 const generateColorSelection = () => {
   const colorSelection = document.getElementById('color-selection');
 
-  avatarColors.forEach(({
-    id: currentColorId,
-    color: textColor,
-    background,
-  }) => {
-    const color = document.createElement('span');
-    color.classList.add('color');
-    color.setAttribute('style', `background-color: ${background}; color: ${textColor}`);
+  avatarColors.forEach(
+    ({ id: currentColorId, color: textColor, background }) => {
+      const color = document.createElement('span');
+      color.classList.add('color');
+      color.setAttribute(
+        'style',
+        `background-color: ${background}; color: ${textColor}`,
+      );
 
-    if (activeColor.id === currentColorId) {
-      color.classList.add('selected');
-    }
+      if (activeColor.id === currentColorId) {
+        color.classList.add('selected');
+      }
 
-    color.addEventListener('click', ({ target: clickedColor }) => {
-      activeColor = {
-        color: textColor,
-        background,
-      };
+      color.addEventListener('click', ({ target: clickedColor }) => {
+        activeColor = {
+          color: textColor,
+          background,
+        };
 
-      selectedIdentity.color = activeColor;
+        selectedIdentity.color = activeColor;
 
-      // Remove selection for all other colors
-      document.querySelectorAll('.color-selection .color').forEach((color) => {
-        color.classList.remove('selected');
+        // Remove selection for all other colors
+        document
+          .querySelectorAll('.color-selection .color')
+          .forEach((color) => {
+            color.classList.remove('selected');
+          });
+
+        clickedColor.classList.add('selected');
+
+        updateAvatar();
       });
 
-      clickedColor.classList.add('selected');
-
-      updateAvatar();
-    });
-
-    colorSelection.appendChild(color);
-  });
+      colorSelection.appendChild(color);
+    },
+  );
 };
 
 const handleMessage = (message) => {
@@ -210,7 +213,10 @@ const createIdentityBox = (identity) => {
   identityBox.classList.add('identity-box');
   const avatar = document.createElement('span');
   avatar.classList.add('avatar');
-  avatar.setAttribute('style', `background-color: ${identity.color.background}; color: ${identity.color.color}`);
+  avatar.setAttribute(
+    'style',
+    `background-color: ${identity.color.background}; color: ${identity.color.color}`,
+  );
   const displayName = document.createElement('span');
 
   avatar.innerHTML = identity.displayName.charAt(0);
@@ -245,7 +251,12 @@ const populateEditDialog = () => {
 };
 
 const updateAvatar = () => {
-  document.getElementById('avatar').setAttribute('style', `background-color: ${activeColor.background}; color: ${activeColor.color}`);
+  document
+    .getElementById('avatar')
+    .setAttribute(
+      'style',
+      `background-color: ${activeColor.background}; color: ${activeColor.color}`,
+    );
 };
 
 const updateAvatarContent = (value) => {
@@ -264,13 +275,13 @@ const setMutuallyExclusiveField = () => {
 
   // Disable input for webID when filling in idp (mutually exclusive inputs)
   if (webid.value.length) {
-    idp.setAttribute('disabled', true);
+    idp.setAttribute('disabled', 'true');
   } else {
     idp.removeAttribute('disabled');
   }
 
   if (idp.value.length) {
-    webid.setAttribute('disabled', true);
+    webid.setAttribute('disabled', 'true');
   } else {
     webid.removeAttribute('disabled');
   }
@@ -317,15 +328,14 @@ const showErrors = () => {
   document.querySelectorAll('form input').forEach((inputField) => {
     inputField.classList.remove('error');
   });
-  document.querySelectorAll('.error-explanation').forEach((errorExplanation) => {
-    errorExplanation.innerHTML = '';
-  });
+  document
+    .querySelectorAll('.error-explanation')
+    .forEach((errorExplanation) => {
+      errorExplanation.innerHTML = '';
+    });
 
   // Cycle through found errors and show it in the form
-  formErrors.forEach(({
-    id: elementId,
-    error,
-  }) => {
+  formErrors.forEach(({ id: elementId, error }) => {
     document.getElementById(elementId).classList.add('error');
     document.getElementById(`${elementId}-error`).innerHTML = error;
   });

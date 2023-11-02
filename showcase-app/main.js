@@ -1,8 +1,13 @@
-import { fetch, login, getDefaultSession, handleIncomingRedirect } from '@inrupt/solid-client-authn-browser';
+import {
+  fetch,
+  login,
+  getDefaultSession,
+  handleIncomingRedirect,
+} from '@inrupt/solid-client-authn-browser';
 import {
   getSolidDataset,
   getThing,
-  getStringNoLocale
+  getStringNoLocale,
 } from '@inrupt/solid-client';
 import { SCHEMA_INRUPT } from '@inrupt/vocab-common-rdf';
 import IdentityWidget from './plugin/identityPlugin';
@@ -24,7 +29,7 @@ document.querySelector('#app').innerHTML = `
     <section id="one-click-login" class="hidden">
       <hr />
       <button class="oidc-login-button" id="login-with-extension">
-        <img src="solid-48.png" />
+        <img src="/solid-48.png" alt="solid logo"/>
         <span id="login-with-extension-text"></span>
       </button>
     </section>
@@ -44,7 +49,7 @@ let identityWidget;
  * Application-side code for demonstration purposes
  */
 const main = async () => {
-  // Create new link to chrome extension and link callback to detect changes in identity:
+  // Create new link to Chrome extension and link callback to detect changes in identity:
   identityWidget = new IdentityWidget();
   identityWidget.onIdentityChanged(handleIdentityChange);
 
@@ -54,23 +59,24 @@ const main = async () => {
   // You can get a list of all identities currently available from the chrome extension:
   // const identities = await identityWidget.getIdentities();
 
-  updateState();
+  await updateState();
 };
 
 // Invalidates the application - purely checks whether logged in or not and updates app state based on that
 const updateState = async () => {
   if (getDefaultSession().info.isLoggedIn) {
-    console.log('%cLOGGED IN', 'padding: 5px; border-radius: 3px; background: #e3c; font-weight: bold; color: white', getDefaultSession().info);
+    console.log(
+      '%cLOGGED IN',
+      'padding: 5px; border-radius: 3px; background: #e3c; font-weight: bold; color: white',
+      getDefaultSession().info,
+    );
     document.getElementById('app-card').classList.remove('hidden');
     document.getElementById('login-card').classList.add('hidden');
 
     const session = getDefaultSession();
 
     // Getting dataset from a specific WebID (the one that was logged in with)
-    const myDataset = await getSolidDataset(
-      session.info.webId,
-      { fetch }
-    );
+    const myDataset = await getSolidDataset(session.info.webId, { fetch });
 
     // Getting contents at /me from the current pod
     const me = getThing(myDataset, session.info.webId);
@@ -91,7 +97,13 @@ const updateState = async () => {
   }
 };
 
-const handleIdentityChange = (newIdentity) => {
+// This function is called whenever the identity changes
+/**
+ *
+ * @param {object} newIdentity - the new identity that is active
+ * @param {string} newIdentity.displayName - the identity's display name
+ */
+const handleIdentityChange = async (newIdentity) => {
   // Check if data is populated, and handle it if it is
   if (!newIdentity) {
     document.getElementById('one-click-login').classList.add('hidden');
@@ -100,41 +112,52 @@ const handleIdentityChange = (newIdentity) => {
 
   // If you are already logged in, changing identity should also change session
   if (getDefaultSession().info.isLoggedIn) {
-    logout();
+    await logout();
     window.location.href = window.location.origin;
   }
 
   // Show the user the option to log in with this new active identity
   document.getElementById('one-click-login').classList.remove('hidden');
-  document.getElementById('login-with-extension-text').innerHTML = `Continue as ${newIdentity.displayName}`;
-
-  return;
+  document.getElementById(
+    'login-with-extension-text',
+  ).innerHTML = `Continue as ${newIdentity.displayName}`;
 };
 
+/**
+ * Starts the login process if not already logged in
+ * @returns {Promise<void>}
+ */
 const startLogin = async () => {
-  // Start the Login Process if not already logged in.
   if (!getDefaultSession().info.isLoggedIn) {
     await login({
       oidcIssuer: identityWidget.activeIdentity.idpOrWebID,
       redirectUrl: window.location.href,
-      clientName: 'Cool Solid App (showcase)'
+      clientName: 'Cool Solid App (showcase)',
     });
   }
 };
 
+/**
+ * Logs out of the current session
+ * @returns {Promise<void>}
+ */
 const logout = async () => {
   await getDefaultSession().logout();
-  updateState();
+  await updateState();
 };
 
-document.getElementById('login-with-extension').addEventListener('click', (e) => {
-  e.preventDefault();
-  startLogin();
-});
+document
+  .getElementById('login-with-extension')
+  .addEventListener('click', async (e) => {
+    e.preventDefault();
+    await startLogin();
+  });
 
-document.getElementById('logout-button').addEventListener('click', (e) => {
-  e.preventDefault();
-  logout();
-});
+document
+  .getElementById('logout-button')
+  .addEventListener('click', async (e) => {
+    e.preventDefault();
+    await logout();
+  });
 
 main();
