@@ -8,14 +8,6 @@ const EXTENSION_ID = 'jhojffnfpoedbmolmgnddndjhmonmhnl';
 const DEBUG = true;
 
 /**
- * @typedef {object} Identity
- * @property {string} displayName - The display name of the identity.
- * @property {string} idpOrWebID - The IDP or WebID of the identity.
- * @property {object} metadata - Metadata of the identity.
- * @property {string} metadata.name - Name of the identity.
- */
-
-/**
  * This widget serves as a (temporary or not) interface between a solid application and the identity Chrome extension.
  * The idea of this widget is to make life easier developing a solid app that can make use of identities/profiles defined by the user in a single location.
  * Ideally the extension leverages user effort to keep profiles in one place.
@@ -126,6 +118,14 @@ export default class IdentityWidget {
       this.port.postMessage({ type: 'request-identities' });
     });
   };
+
+  /**
+   * @typedef {object} Identity
+   * @property {string} displayName - The display name of the identity.
+   * @property {string} idpOrWebID - The IDP or WebID of the identity.
+   * @property {object} metadata - Metadata of the identity.
+   * @property {string} metadata.name - Name of the identity.
+   */
 
   /**
    * Callback definition for the onIdentityChanged event.
