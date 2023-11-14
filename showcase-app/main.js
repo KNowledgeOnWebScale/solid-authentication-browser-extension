@@ -46,7 +46,7 @@ document.querySelector('#app').innerHTML = `
 let identityWidget;
 
 /**
- * Application-side code for demonstration purposes
+ * Application-side code for demonstration purposes.
  */
 const main = async () => {
   // Create new link to Chrome extension and link callback to detect changes in identity:
@@ -84,7 +84,7 @@ const updateState = async () => {
     // Getting the name from the vcard if exists
     const name = getStringNoLocale(me, SCHEMA_INRUPT.name);
 
-    // By means of an example, we can pump back metadata from the pod to the extension using metadata and an update event
+    // By means of an example, we forward the metadata from the pod to the extension using metadata and an update event
     identityWidget.updateProfile({
       ...identityWidget.activeIdentity,
       metadata: {
@@ -97,26 +97,25 @@ const updateState = async () => {
   }
 };
 
-// This function is called whenever the identity changes
 /**
- *
- * @param {object} newIdentity - the new identity that is active
- * @param {string} newIdentity.displayName - the identity's display name
+ * This function is called whenever the identity changes.
+ * @param {object} newIdentity - The new identity that is active.
+ * @param {string} newIdentity.displayName - The identity's display name.
  */
 const handleIdentityChange = async (newIdentity) => {
-  // Check if data is populated, and handle it if it is
+  // Check if data is populated, and handle it if it is.
   if (!newIdentity) {
     document.getElementById('one-click-login').classList.add('hidden');
     return;
   }
 
-  // If you are already logged in, changing identity should also change session
+  // If you are already logged in, changing identity should also change session.
   if (getDefaultSession().info.isLoggedIn) {
     await logout();
     window.location.href = window.location.origin;
   }
 
-  // Show the user the option to log in with this new active identity
+  // Show the user the option to log in with this new active identity.
   document.getElementById('one-click-login').classList.remove('hidden');
   document.getElementById(
     'login-with-extension-text',
@@ -124,7 +123,7 @@ const handleIdentityChange = async (newIdentity) => {
 };
 
 /**
- * Starts the login process if not already logged in
+ * Starts the login process if not already logged in.
  * @returns {Promise<void>}
  */
 const startLogin = async () => {
@@ -138,7 +137,7 @@ const startLogin = async () => {
 };
 
 /**
- * Logs out of the current session
+ * Logs out of the current session.
  * @returns {Promise<void>}
  */
 const logout = async () => {

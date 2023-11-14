@@ -9,18 +9,18 @@ const DEBUG = true;
 
 /**
  * @typedef {object} Identity
- * @property {string} displayName - the display name of the identity
- * @property {string} idpOrWebID - the IDP or WebID of the identity
- * @property {object} metadata - metadata of the identity
- * @property {string} metadata.name - name of the identity
+ * @property {string} displayName - The display name of the identity.
+ * @property {string} idpOrWebID - The IDP or WebID of the identity.
+ * @property {object} metadata - Metadata of the identity.
+ * @property {string} metadata.name - Name of the identity.
  */
 
 /**
- * This widget serves as a (temporary or not) interface between a solid application and the identity Chrome extension
- * The idea of this widget is to make life easier developing a solid app that can make use of identities/profiles defined by the user in a single location
- * Ideally the extension leverages user effort to keep profiles in one place
- * The widget is more a developer-experience enhancement for those developing solid apps
- * The widget acts as a bridget between a solid app living in the scope of a single tab to get profiles and updates from the extension
+ * This widget serves as a (temporary or not) interface between a solid application and the identity Chrome extension.
+ * The idea of this widget is to make life easier developing a solid app that can make use of identities/profiles defined by the user in a single location.
+ * Ideally the extension leverages user effort to keep profiles in one place.
+ * The widget is more a developer-experience enhancement for those developing solid apps.
+ * The widget acts as a bridget between a solid app living in the scope of a single tab to get profiles and updates from the extension.
  */
 export default class IdentityWidget {
   port;
@@ -32,12 +32,12 @@ export default class IdentityWidget {
   }
 
   /**
-   * PRIVATE METHODS
+   * PRIVATE METHODS.
    */
 
   /**
-   * Initializes the connection to the extension and sets up the required listeners for incoming messages and disconnects
-   * Requests the active identity from the extension
+   * Initializes the connection to the extension and sets up the required listeners for incoming messages and disconnects.
+   * Requests the active identity from the extension.
    * @private
    */
   _initializeConnection = () => {
@@ -56,18 +56,18 @@ export default class IdentityWidget {
       );
     }
 
-    // Long-lived connections will shut down after a longer period of inactivity. They are hydrated by opening the connection again after it is closed
-    // The idea is to only update the connection when it is absolutely needed
-    // TODO: check if there is a better Keep-alive mechanism to handle this
+    // Long-lived connections will shut down after a longer period of inactivity. They are hydrated by opening the connection again after it is closed.
+    // The idea is to only update the connection when it is absolutely needed.
+    // TODO: check if there is a better Keep-alive mechanism to handle this.
     // https://github.com/KNowledgeOnWebScale/solid-authentication-browser-extension/issues/47
     this._initializeConnection();
   };
 
   /**
-   * Handle messages sent from the extension
-   * @param {object} message - the message received from the extension
-   * @param {string} message.type - the message type
-   * @param {string} message.data - the message type
+   * Handle messages sent from the extension.
+   * @param {object} message - The message received from the extension.
+   * @param {string} message.type - The message type.
+   * @param {string} message.data - The message type.
    */
   _handleMessageFromExtension = async (message) => {
     if (DEBUG) {
@@ -85,11 +85,11 @@ export default class IdentityWidget {
 
     if (message.type === 'active-identity-response') {
       if (message.data) {
-        // Make the received identity actual
+        // The received identity becomes the active one.
         this.activeIdentity = message.data;
 
-        // Fire the change handler
-        // The Solid App can subscribe to this event to handle any changes in the app to trigger required behaviour
+        // Fire the change handler.
+        // The Solid App can subscribe to this event to handle any changes in the app to trigger required behaviour.
         this.identityChangedHandler({
           ...this.activeIdentity,
         });
@@ -98,7 +98,7 @@ export default class IdentityWidget {
   };
 
   /**
-   * PUBLIC METHODS (API)
+   * PUBLIC METHODS (API).
    */
 
   /** @typedef {{ webID: string }} WebID*/
@@ -106,44 +106,45 @@ export default class IdentityWidget {
   /** @typedef {( WebID | IDP )} DataType*/
   /** @typedef {{ data: DataType }} IDP*/
   /**
-   * Gets all identities currently available in the extension
-   * @returns {Promise<DataType[]>} - the identities from the extension
+   * Gets all identities currently available in the extension.
+   * @returns {Promise<DataType[]>} - The identities from the extension.
    */
   getIdentities = () => {
-    // This method promisifies feedback from the async flow imposed by usage of messaging ports
+    // This method promisifies feedback from the async flow imposed by usage of messaging ports.
     return new Promise((resolve) => {
-      // handle incoming messages from the Chrome extension
+      // handle incoming messages from the Chrome extension.
       const handleRequest = (message) => {
         if (message.type === 'all-identities-response') {
-          // We resolve the promise with the required data and then perform cleanup
+          // We resolve the promise with the required data and then perform cleanup.
           resolve(message.data);
           this.port.onMessage.removeListener(handleRequest);
         }
       };
 
-      // Subscribe new message handler and then fire the message to the extension to kickstart the start of the entire cycle, requesting all identities
+      // Subscribe new message handler and then fire the message to the extension to kickstart the start of the entire cycle, requesting all identities.
       this.port.onMessage.addListener(handleRequest);
       this.port.postMessage({ type: 'request-identities' });
     });
   };
 
   /**
+   * Callback definition for the onIdentityChanged event.
    * @callback identityChangedCallback
-   * @param {Identity} identity - the new identity that is active
+   * @param {Identity} identity - The new identity that is active.
    */
   /**
-   * Call this method with the function you want to execute whenever a profile change occurs
-   * @param {identityChangedCallback} callback - the callback invoked upon identity change
+   * Call this method with the function you want to execute whenever a profile change occurs.
+   * @param {identityChangedCallback} callback - The callback invoked upon identity change.
    */
   onIdentityChanged = (callback) => {
     this.identityChangedHandler = callback;
   };
 
   /**
-   * Updates the profile in the extension
-   * Call this function if you want to change a user's profile or annotate it with new data
-   * A profile can have a metadata Object { name: ? } with a name property (currently) which can then show more data coming from - for example - the pod, in the extension
-   * @param {Identity} identity - the identity to update
+   * Updates the profile in the extension.
+   * Call this function if you want to change a user's profile or annotate it with new data.
+   * A profile can have a metadata Object { name: ? } with a name property (currently) which can then show more data coming from - for example - the pod, in the extension.
+   * @param {Identity} identity - The identity to update.
    */
   updateProfile = (identity) => {
     this.port.postMessage({

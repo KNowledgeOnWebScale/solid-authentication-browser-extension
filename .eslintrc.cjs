@@ -45,8 +45,8 @@ module.exports = {
     // 'jsdoc/no-types': 1,
     'jsdoc/no-undefined-types': 1, // Recommended
     // 'jsdoc/require-asterisk-prefix': 1,
-    // 'jsdoc/require-description': 1,
-    // 'jsdoc/require-description-complete-sentence': 1,
+    'jsdoc/require-description': 1,
+    'jsdoc/require-description-complete-sentence': 1,
     // 'jsdoc/require-example': 1,
     // 'jsdoc/require-file-overview': 1,
     // 'jsdoc/require-hyphen-before-param-description': 1,
